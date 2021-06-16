@@ -1,0 +1,13 @@
+
+ IPSOIL  YEAR DOY =    0   0
+ Saturated hydraulic conductivity equal to zero for one or more soil layers.   
+ Data will be treated as missing.                                              
+
+ SOILDYN  YEAR DOY = 2018   1
+ Initial soil water content < LL.                                              
+                                                                               
+          FileX              SW @  Revised                                     
+ Layer  Init SW       LL   AirDry  Init SW                                     
+     6    0.076    0.128             0.128                                     
+     7    0.076    0.143             0.143                                     
+     8    0.130    0.138             0.138                                     
