@@ -6,10 +6,9 @@ from dabbler import Experiment, Results
 
 dssat_bin = '/home/george/DSSAT/build/bin'
 dssat_weather = '/home/george/DSSAT/build/Weather'
-iowa_mesonet = 'test_data/Iowa_Mesonet_all_1999_2019.txt'
+iowa_mesonet = 'test_data/Iowa_Mesonet_all_2018_2019.txt'
 test_data, test_header = format_Iowa_mesonet(iowa_mesonet, 'ESTHERVILLE-2-N',
                                              2018)
-
 # Test experiment run
 exp = Experiment('TEST', 'Test Location, TE', 'test/', dssat_bin, dssat_weather)
 exp.phenology('Maize', 'PC0001', 'MZIXM', 'templates/template.MZX')
