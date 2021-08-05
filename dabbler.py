@@ -77,6 +77,7 @@ class Experiment:
         if isinstance(exp_filename, type(None)):
             exp_filename = file_generator.generate_experiment(
                 self.EXP_ID,
+                self.model,
                 self.plant_start,
                 self.plant_end,
                 self.harvest_date,
@@ -178,6 +179,16 @@ class Experiment:
             year = str(self.sim_start)[:2]
         except AttributeError:
             raise RuntimeError('Set experiment timing before setting weather.')
+        if isinstance(header, type(None)):
+            header = {'INSI': '',
+                      'LAT': 0,
+                      'LONG': 0,
+                      'ELEV': 0,
+                      'TAV': 0,
+                      'AMP': 0,
+                      'REFHT': 0,
+                      'WNDHT': 0,
+                      'location': ''}
 
         filename = f'{self.EXP_ID}{year}01.WTH'
 

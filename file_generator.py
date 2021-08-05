@@ -24,7 +24,7 @@ def gen_weather_name(ASD, county, year, gen_names):
     return weather_name
 
 
-def generate_experiment(ID, plant_start, plant_end, harvest_date, harvest_start,
+def generate_experiment(ID, model, plant_start, plant_end, harvest_date, harvest_start,
                         harvest_end, simulation_start, cultivar, soil_id, loc,
                         save_loc, save_name, template, forecast_start=False,
                         num_years=False):
@@ -75,6 +75,7 @@ def generate_experiment(ID, plant_start, plant_end, harvest_date, harvest_start,
 
     terms = {'FLD_ID': ID[3:],
              'ID': ID,
+             'MDL': model,
              'CULT': cultivar,
              'SDT': simulation_start,
              'SOIL_IDN': soil_id,
@@ -121,7 +122,7 @@ def generate_weather(filename, savepath, weather_data, header_data):
     str
         Absolute path to newly generated file.
     """
-
+    
     path = Path(savepath, filename)
 
     # Check for any missing weather columns and fill them with NaN
