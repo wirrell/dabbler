@@ -1,0 +1,28 @@
+
+ IPSOIL  YEAR DOY =    0   0
+ Saturated hydraulic conductivity equal to zero for one or more soil layers.   
+ Data will be treated as missing.                                              
+
+ SOILDYN  YEAR DOY = 2020   1
+ Initial soil water content < LL.                                              
+                                                                               
+          FileX              SW @  Revised                                     
+ Layer  Init SW       LL   AirDry  Init SW                                     
+     6    0.076    0.128             0.128                                     
+     7    0.076    0.143             0.143                                     
+     8    0.130    0.138             0.138                                     
+
+ IPWTH   YEAR DOY = 2020   1
+ Value of TAV, average annual soil temperature, is missing.                    
+ A default value of 20.0°C is being used for this simulation,                 
+ which may produce inaccurate results.                                         
+
+ IPWTH   YEAR DOY = 2020   1
+ Value of TAMP, amplitude of soil temperature function, is missing.            
+ A default value of  5.0°C is being used for this simulation,                 
+ which may produce inaccurate results.                                         
+
+ IPWTH   YEAR DOY = 2020   1
+ Weather record not found for YR DOY: 2020   1                                 
+   ///home/george/DSSAT/build/Weather/TEST2001.WTH                             
+ Simulation will end.                                                          
