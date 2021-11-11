@@ -132,6 +132,8 @@ class SoilGenerator():
         ----------
         ROIs : dict of shapely.geometry.Polygon in WGS84 coodinates
                 keyed by 10 character reference codes
+        loc_name : str
+            Location to save generated soil file.
         filename : str
             e.g. 'US.SOL'. NOTE: prefix must be 2 characters long
         append : bool
@@ -189,7 +191,7 @@ class SoilGenerator():
                            ROI_tables,
                            ROI_properties,
                            HC_codes,
-                           filename,
+                           Path(loc_name) / filename,
                            append)
 
 

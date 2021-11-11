@@ -25,8 +25,8 @@ def gen_weather_name(ASD, county, year, gen_names):
 
 
 def generate_experiment(ID, model, plant_start, plant_end, harvest_date, harvest_start,
-                        harvest_end, simulation_start, cultivar, soil_id, loc,
-                        save_loc, save_name, template, forecast_start=False,
+                        harvest_end, simulation_start, cultivar, soil_id, weather_file,
+                        loc, save_loc, save_name, template, forecast_start=False,
                         num_years=False):
     """Generate the experiment file from the MZIXM template.MZX
 
@@ -50,6 +50,8 @@ def generate_experiment(ID, model, plant_start, plant_end, harvest_date, harvest
         e.g. 'PC0004'
     soil_id : str
         e.g. 'IB00000007'
+    weather_file : str
+        weather file name e.g. 'UFGA8201.WTH'
     loc : str
         Location, e.g. 'Iowa ASD: NW, County: Emmet'
     save_loc : str
@@ -84,7 +86,7 @@ def generate_experiment(ID, model, plant_start, plant_end, harvest_date, harvest
              'HVF': harvest_start,
              'HVL': harvest_end,
              'HDT': harvest_date,
-             'WST': save_name[:4],
+             'WST': weather_file,
              'LOC': loc}
 
     if forecast_start:

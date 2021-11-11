@@ -30,22 +30,22 @@ fields['TTST000002'] = field
 
 # Generate a soil file
 SG = SoilGenerator(dssat_soil)
-SG.generate_soils(fields, 'test_loc', 'TT.SOL', test_run_loc)
+SG.generate_soils(fields, dssat_soil, 'TT.SOL', test_run_loc)
 
 # Test experiment run
 for field in fields:
     weather = generate_weather(
-        [fields[field].centroid.xy[1][0], fields[field].centroid.xy[0][0]],
-        2020,
-        field,
-        'TEST2001.WTH',
-        test_run_loc
-    )
+         [fields[field].centroid.xy[1][0], fields[field].centroid.xy[0][0]],
+         2020,
+         field,
+         'TESTTEST.WTH',
+         test_run_loc
+     )
     exp = Experiment('TEST', 'Test Location, TE', 'test_run/', dssat_bin, dssat_weather)
     exp.phenology('Maize', 'PC0001', 'MZIXM', '../data/templates/template.MZX')
     exp.timing(20001, 20100, 20110, 20300)
     exp.weather(weather)
-    exp.soil('IB00000007')
+    exp.soil(field)
     exp.run()
 
     # Test results

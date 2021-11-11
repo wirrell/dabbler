@@ -20,7 +20,7 @@ from .headers import get_header
 from pathlib import Path
 
 def generate_weather(coordinates, year, loc_name, filename, savepath):
-    """Generate a DSSAT weather file.
+    """Generate a DSSAT weather file from DayMet weather data.
 
     Parameters
     ----------

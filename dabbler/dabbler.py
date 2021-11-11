@@ -86,6 +86,7 @@ class Experiment:
                 self.sim_start,
                 self.cultivar,
                 self.soil_id,
+                self.weather_file,
                 self.exp_location,
                 self.save_path,
                 save_name,
@@ -173,7 +174,8 @@ class Experiment:
         """
 
         if isinstance(weather, str):
-            self.weather_file = weather
+            self.weather_file_loc = weather
+            self.weather_file = Path(weather).stem
             return
         try:
             year = str(self.sim_start)[:2]
@@ -192,10 +194,11 @@ class Experiment:
 
         filename = f'{self.EXP_ID}{year}01.WTH'
 
-        self.weather_file = file_generator.generate_weather(filename,
+        self.weather_file_loc = file_generator.generate_weather(filename,
                                                             self.weather_path,
                                                             weather,
                                                             header)
+        self.weather_file = Path(self.weather_file_loc).stem
 
     def phenology(self, crop, cultivar, model, template):
         """Add phenology information to experiment.
