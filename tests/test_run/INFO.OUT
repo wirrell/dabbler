@@ -2,651 +2,90 @@
 
 ******************************************************************************
 
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:05:35
+*DSSAT Cropping System Model Ver. 4.7.5.042 -develop  NOV 25, 2021 10:20:41
 
  MAKEFW  YEAR DOY =    0   0
  Y4KDOY - Weather file                                                         
  Not able to find 7-digits first weather date                                  
  Set simulation to 5-digits first weather date                                 
 
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
+ IPFLD   YEAR DOY =    0   0
+ Plastic mulch cover albedo =   0.00                                           
+
+ CSM     YEAR DOY = 1982   1
+ RNMODE = A                                                                    
  PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
+ FILEX  = TEST0001.EXP                                                         
+ FILEB  =                                                                      
  FILEIO = DSSAT47.INP                                                          
  MODEL  = MZIXM047                                                             
  TRTNUM =     1                                                                
 
- SOILDYN  YEAR DOY = 2020   1
+ SOILDYN  YEAR DOY = 1982   1
  The soil file has missing or invalid data.                                    
  Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
+   pH, STONES, ADCOEF, CEC                                                     
  These defaults may or may not be important to your results.                   
 
- RETC  YEAR DOY = 2020   1
+ RETC  YEAR DOY = 1982   1
  Soil RETC parameters:                                                         
   LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
+   1   5-99.00 0.010   3.9 0.439  0.009 0.387 1.632 ClayLoam                   
+   2  15-99.00 0.010   2.6 0.419  0.010 0.394 1.651 ClayLoam                   
+   3  30-99.00 0.010   2.6 0.419  0.010 0.394 1.651 ClayLoam                   
+   4  45-99.00 0.010   2.6 0.419  0.010 0.394 1.651 ClayLoam                   
+   5  60-99.00 0.010   2.6 0.419  0.010 0.394 1.651 ClayLoam                   
+   6  90-99.00 0.011   2.6 0.398  0.010 0.377 1.606 ClayLoam                   
+   7 120-99.00 0.011   2.6 0.398  0.010 0.377 1.606 ClayLoam                   
+   8 150-99.00 0.011   9.6 0.495  0.006 0.383 1.620 ClayLoam                   
+   9 180-99.00 0.027  14.4 0.439  0.004 0.345 1.527 ClayLoam                   
 
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
+ SOILDYN  YEAR DOY = 1982   1
+ Soil ID: IBMZ910014                                                           
+ MILLHOPPER FINE SAND                                                          
+ LOAMY,SILIC,HYPERTH ARENIC PALEUDULT                                          
    SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
+   0.18  0.65  60.0  1.00  0.92 IB001                                          
  Soil layer distribution method: 2                                             
       DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
  LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
+   1   5     5 0.026 0.096 0.230 1.000  1.30  2.00  30.0  30.0  40.0   7.0     
+   2  15    10 0.025 0.086 0.230 1.000  1.30  1.00  30.0  30.0  40.0   7.0     
+   3  30    15 0.025 0.086 0.230 0.700  1.40  1.00  30.0  30.0  40.0   7.0     
+   4  45    15 0.025 0.086 0.230 0.300  1.40  0.50  30.0  30.0  40.0   7.0     
+   5  60    15 0.025 0.086 0.230 0.300  1.40  0.50  30.0  30.0  40.0   7.0     
+   6  90    30 0.028 0.090 0.230 0.050  1.45  0.10  30.0  30.0  40.0   7.0     
+   7 120    30 0.028 0.090 0.230 0.030  1.45  0.10  30.0  30.0  40.0   7.0     
+   8 150    30 0.029 0.130 0.230 0.002  1.45  0.04  30.0  30.0  40.0   7.0     
+   9 180    30 0.070 0.258 0.360 0.000  1.20  0.24  30.0  30.0  40.0   7.0     
 
- SOILDYN  YEAR DOY = 2020   1
+ SOILDYN  YEAR DOY = 1982   1
  Additional soil properties                                                    
                 Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
+    Cation Adsrp  ppm /  SLCF                                                  
+   L  Exch  Coef  kg/ha     %                                                  
+   1  20.0   0.0   1.54   0.0                                                  
+   2  15.5   0.0   0.77   0.0                                                  
+   3  15.5   0.0   0.48   0.0                                                  
+   4  15.5   0.0   0.48   0.0                                                  
+   5  15.5   0.0   0.48   0.0                                                  
+   6  15.5   0.0   0.23   0.0                                                  
+   7  15.5   0.0   0.23   0.0                                                  
+   8  15.5   0.0   0.23   0.0                                                  
+   9  15.5   0.0   0.28   0.0                                                  
 
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
+ IPWTH   YEAR DOY = 1982   1
+ ///home/george/DSSAT/build/Weather/UFGA8201.WTH                               
  Found daily weather data headers for:                                         
    SRAD           Col   7 -  11                                                
    TMAX           Col  13 -  17                                                
    TMIN           Col  19 -  23                                                
    RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
+   PAR            Col  31 -  47                                                
 
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
+ CO2VAL  YEAR DOY = 1982   1
+  755 CO2 data points read from file.                                          
  ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
 
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:05:42
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:05:43
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:06:08
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:06:09
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:06:17
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
- Normal end of run        1                                                    
-
-******************************************************************************
-
-*DSSAT Cropping System Model Ver. 4.7.5.039 -develop  NOV 04, 2021 14:06:30
-
- MAKEFW  YEAR DOY =    0   0
- Y4KDOY - Weather file                                                         
- Not able to find 7-digits first weather date                                  
- Set simulation to 5-digits first weather date                                 
-
- CSM     YEAR DOY = 2020   1
- RNMODE = B                                                                    
- PATHEX =                                                                      
- FILEX  = TEST2001.MZX                                                         
- FILEB  = TEST.v47                                                             
- FILEIO = DSSAT47.INP                                                          
- MODEL  = MZIXM047                                                             
- TRTNUM =     1                                                                
-
- SOILDYN  YEAR DOY = 2020   1
- The soil file has missing or invalid data.                                    
- Default values have been used for these variables:                            
-   CEC, ADCOEF                                                                 
- These defaults may or may not be important to your results.                   
-
- RETC  YEAR DOY = 2020   1
- Soil RETC parameters:                                                         
-  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
-   1   5-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   2  15-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   3  30-99.00 0.022   0.9 0.329  0.039 0.299 1.426 SandyLoam                  
-   4  45-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   5  60-99.00 0.032   0.7 0.270  0.048 0.256 1.344 SandyLoam                  
-   6  90-99.00 0.055   0.5 0.177  0.069 0.180 1.220 SandyLoam                  
-   7 120-99.00 0.062   0.5 0.160  0.072 0.164 1.196 SandyLoam                  
-   8 150-99.00 0.060   0.5 0.170  0.065 0.170 1.205 SandyLoam                  
-   9 180-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-  10 210-99.00 0.060   0.6 0.171  0.064 0.171 1.206 SandyLoam                  
-
- SOILDYN  YEAR DOY = 2020   1
- Soil ID: IB00000007                                                           
- DEFAULT - DEEP SANDY LOAM                                                     
- GENERIC                                                                       
-   SALB SWCON    CN  DMOD  SLPF SMPX                                           
-   0.13  0.50  68.0  1.00  1.00 IB001                                          
- Soil layer distribution method: 2                                             
-      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
- LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
-   1   5     5 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   2  15    10 0.052 0.176 0.359 1.000  1.61  0.70  10.0  30.0  60.0   6.5     
-   3  30    15 0.052 0.176 0.359 0.638  1.61  0.66  10.0  30.0  60.0   6.5     
-   4  45    15 0.073 0.192 0.360 0.472  1.61  0.58  10.0  30.0  60.0   6.5     
-   5  60    15 0.073 0.192 0.360 0.350  1.61  0.58  10.0  30.0  60.0   6.5     
-   6  90    30 0.128 0.232 0.361 0.223  1.61  0.43  10.0  30.0  60.0   6.5     
-   7 120    30 0.143 0.243 0.359 0.122  1.62  0.26  10.0  30.0  60.0   6.5     
-   8 150    30 0.138 0.243 0.360 0.067  1.62  0.12  10.0  30.0  60.0   6.5     
-   9 180    30 0.138 0.244 0.361 0.037  1.62  0.04  10.0  30.0  60.0   6.5     
-  10 210    30 0.138 0.244 0.361 0.020  1.62  0.01  10.0  30.0  60.0   6.5     
-
- SOILDYN  YEAR DOY = 2020   1
- Additional soil properties                                                    
-                Convert                                                        
-    Cation Adsrp  ppm /  SLCF  TOTN  OrgN                                      
-   L  Exch  Coef  kg/ha     %     % kg/ha                                      
-   1  15.5   0.0   1.24   0.0  0.07   563                                      
-   2  15.5   0.0   0.62   0.0  0.07  1126                                      
-   3  15.5   0.0   0.41   0.0  0.07  1689                                      
-   4  15.5   0.0   0.41   0.0  0.06  1448                                      
-   5  15.5   0.0   0.41   0.0  0.06  1448                                      
-   6  15.5   0.0   0.21   0.0  0.04  1929                                      
-   7  15.5   0.0   0.21   0.0  0.03  1455                                      
-   8  15.5   0.0   0.21   0.0  0.01   483                                      
-   9  15.5   0.0   0.21   0.0  0.00   -99                                      
-  10  15.5   0.0   0.21   0.0  0.00   -99                                      
-
- IPWTH   YEAR DOY = 2020   1
- TEST2001.WTH                                                                  
- Found daily weather data headers for:                                         
-   SRAD           Col   7 -  11                                                
-   TMAX           Col  13 -  17                                                
-   TMIN           Col  19 -  23                                                
-   RAIN           Col  25 -  29                                                
-   DEWP           Col  31 -  35                                                
-   WIND           Col  37 -  41                                                
-   PAR            Col  43 -  46                                                
-   RHUM           Col  54 -  58                                                
-
- CO2VAL  YEAR DOY = 2020   1
-  731 CO2 data points read from file.                                          
- ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
-
- ENDRUN  YEAR DOY = 2020 300
+ ENDRUN  YEAR DOY = 1982 176
  Normal end of run        1                                                    

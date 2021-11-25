@@ -194,6 +194,8 @@ class SoilGenerator():
                            Path(loc_name) / filename,
                            append)
 
+        return Path(loc_name) / filename
+
 
     def write_to_file(self, ROIs, ROI_tables, ROI_properties, HC_codes,
                       filename, append):

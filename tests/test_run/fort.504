@@ -3,11 +3,20 @@
  Saturated hydraulic conductivity equal to zero for one or more soil layers.   
  Data will be treated as missing.                                              
 
- SOILDYN  YEAR DOY = 2020   1
- Initial soil water content < LL.                                              
+ SOILDYN  YEAR DOY = 1982   1
+ Soil photosynthesis factor (SLPF) = 0.92                                      
+
+ SOILDYN  YEAR DOY = 1982   1
+ The pH of one or more soil layers at initialization                           
+ was outside the range pH=1-10, which is unlikely.                             
+ It was set by DSSAT to pH=7.                                                  
+
+ SETPM     YEAR DOY = 1982   1
+ Flat surface with no plastic mulch covered.                                   
                                                                                
-          FileX              SW @  Revised                                     
- Layer  Init SW       LL   AirDry  Init SW                                     
-     6    0.076    0.128             0.128                                     
-     7    0.076    0.143             0.143                                     
-     8    0.130    0.138             0.138                                     
+
+ IPWTH   YEAR DOY = 1982  98
+ Warning: SRAD < 1 MJ.m-2.d-1.                                                 
+ ///home/george/DSSAT/build/Weather/UFGA8201.WTH                               
+ Line      103                                                                 
+ SRAD =   0.80 MJ.m-2.d-1                                                      

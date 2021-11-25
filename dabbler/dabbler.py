@@ -2,113 +2,190 @@
 dabbler - a simple Python wrapper for DSSAT.
 """
 import os
+import atexit
+import select
 import subprocess
 import pandas as pd
+import pathlib
+import datetime
 from . import file_generator
+from . import templates
+from threading import Thread
+from typing import Union
 from pathlib import Path
 from io import StringIO
+from typing import NamedTuple
 
 
-# TODO: add remaining DSSAT output files to Results class
-# TODO: make it so that generated weather files are saved in the DSSAT
-# weather dir
+# TODO: change DSSAT to enable writing to FIFOs so that OPEN doesn't cause illegal seek
+# See: https://stackoverflow.com/questions/11780556/write-to-fifo-named-pipe
+# NOTE: this may also make it possible to uncomment the commented out files in DSSAT_OUT_FILES
 
-class Experiment:
-    """Build and run a DSSAT experiment.
 
-    Uses template experiment files and fills them in with the details.
+class DSSAT:
+    """Class the represents the DSSAT executable.
 
     Parameters
     ----------
-    EXP_ID : str
-        Experiment identification code
-    exp_location : str
-        Location of experiment for header e.g. 'Somewheresville, FL'
-    save_path : str
-        Location to save results to
     dssat_install : str
         Path to the DSSAT install directory e.g. home/DSSAT/build/bin
     dssat_weather : str
         Path to the DSSAT weather file directory e.g. home/DSSAT/build/weather
     """
-    # TODO: finish docstring
+    # NOTE: files commented out are files that DSSAT regularly reads from itself.
+    # Get cannot FIFO them as the result dissappears once we read from the FIFO
+    DSSAT_OUT_FILES = [
+        # 'ERROR.OUT',
+        'ET.OUT',
+        'Evaluate.OUT',
+        # 'INFO.OUT',
+        # 'LUN.LST',
+        'Mulch.OUT',
+        'N2O.OUT',
+        'OVERVIEW.OUT',
+        'PlantGro.OUT',
+        'PlantN.OUT',
+        'RunList.OUT',
+        'SoilNBalSum.OUT',
+        'SoilNiBal.OUT',
+        'SoilNi.OUT',
+        'SoilNoBal.OUT',
+        'SoilTemp.OUT',
+        'SoilWatBal.OUT',
+        'SoilWat.OUT',
+        'Summary.OUT',
+        # 'WARNING.OUT',
+        'Weather.OUT'
+    ]
 
-    implemented_models = ['MZIXM', '']
-    implemented_crops = ['maize', 'wheat']
+    # Have to format fifos for weathe soil inputs as it
+    # must reside in the /build/Weather
+    DSSAT_IN_FILES = {
+        'EXP': 'PIPE0001.EXP',
+        'WTH': 'PIPE{pid}.WTH',
+        'BATCH': 'BATCH.v47'
+    }
+    # No fifos used for soil.
 
-    def __init__(self, EXP_ID, exp_location, save_path, dssat_install,
-                 dssat_weather):
+
+    def __init__(self, dssat_install, dssat_weather, dssat_soil, run_location=Path.cwd()):
         self.dssat_exe = self._check_install(dssat_install)
-        if len(EXP_ID) != 4:
-            raise ValueError('EXP_ID must be len 4 for DSSAT purposes.')
-        self.EXP_ID = EXP_ID
-        self.exp_location = exp_location
-        self.save_path = save_path
-        self.weather_path = dssat_weather
+        self.dssat_weather = Path(dssat_weather)
+        self.dssat_soil = Path(dssat_soil)
+        self.create_in_out_location()
+        self.build_fifos()
 
-    def run(self, exp_filename=None, forecast=False, supress_stdout=True):
-        """Run the experiment.
+    def create_in_out_location(self):
+        pid = os.getpid()
+        in_out_location = Path.cwd() / f'DSSAT_IO_{pid}'
+        in_out_location.mkdir(exist_ok=True)
+        self.in_out_location = in_out_location
+        atexit.register(self.clean_in_out_on_exit)
 
-        Generates the EXP file, runs the experiment and returns the results.
+    def clean_in_out_on_exit(self):
+        for io_file in self.in_out_location.glob('*'):
+            io_file.unlink()
+        self.in_out_location.rmdir()
 
-        Parameters
-        ----------
-        exp_filename : str, optional
-            If supplied, will used existing experiment file found at this path.
-        forecast : bool, optional
-            If true, will run DSSAT in the new forecast mode.
-        supress_stdout : bool, optional
-            If True, will supress the DSSAT Fortran stdout so it does not
-            clog the terminal.
+    def build_fifos(self):
+        """Builds the fifos used to interface with DSSAT."""
+        self.build_in_fifos()
+        self.build_out_fifos()
+
+    def build_out_fifos(self):
+        # DSSAT will automatically append to them
+        self.out_fifos = {}
+        for out_file in self.DSSAT_OUT_FILES:
+            out_fifo = self.in_out_location / out_file
+            os.mkfifo(out_fifo)
+            self.out_fifos[out_file] = out_fifo
+
+    def build_in_fifos(self):
+        self.in_fifos = {}
+        pid = os.getpid()
+        exp_fifo = self.in_out_location / self.DSSAT_IN_FILES['EXP']
+        # os.mkfifo(exp_fifo) EXP cant be fifo as DSSAT uses rewind multiple times
+        self.in_fifos['EXP'] = exp_fifo
+        wth_fifo = self.dssat_weather / self.DSSAT_IN_FILES['WTH'].format(
+            pid=str(pid)[-4:]
+        )
+        os.mkfifo(wth_fifo)
+        self.in_fifos['WTH'] = wth_fifo
+        batch_fifo = self.in_out_location / self.DSSAT_IN_FILES['BATCH']
+        os.mkfifo(batch_fifo)
+        self.in_fifos['BATCH'] = batch_fifo
+
+    def run(self, experiment, supress_stdout=True):
+        """Run the passed experiment.
 
         Returns
         -------
-        A results summary.
+        dabbler.Results 
         """
-        if forecast:
-            run_mode = 'Y'  # this is the new forecast run mode
-        else:
-            run_mode = 'B'  # we run everything in through a batch file
-            self.forecast_start = ''
-            self.num_years = 1
+        weather_file_string = None
+        if experiment.weather_station_code is None:
+            weather_file_string = file_generator.generate_weather_file_string(
+                experiment
+        )
+            experiment.weather_station_code = self.in_fifos['WTH'].stem
 
-        year = str(self.sim_start)[:2]
-        save_name = f'{self.EXP_ID}{year}01' + self.template[-4:]
-        if isinstance(exp_filename, type(None)):
-            exp_filename = file_generator.generate_experiment(
-                self.EXP_ID,
-                self.model,
-                self.plant_start,
-                self.plant_end,
-                self.harvest_date,
-                self.harvest_date,
-                self.harvest_date,
-                self.sim_start,
-                self.cultivar,
-                self.soil_id,
-                self.weather_file,
-                self.exp_location,
-                self.save_path,
-                save_name,
-                self.template,
-                self.forecast_start,
-                self.num_years)
+        if experiment.soil_code is None:
+            raise NotImplementedError('Have not yet implemented soil file writing.')
+
+        experiment_file_string = file_generator.generate_experiment_file_string(experiment)
 
         # Generate the batch file so we can run in with subprocess
-        batch_file = file_generator.generate_batchfile(exp_filename,
-                                                       self.save_path,
-                                                       self.crop.upper(),
-                                                       self.EXP_ID)
+        batch_file_string = file_generator.generate_batchfile_string(experiment,
+                                                              self.in_fifos['EXP'])
+
+        # Deploy write threads to wait for DSSAT read by themselves
+        self.deploy_write_threads(weather_file_string,
+                                  experiment_file_string,
+                                  batch_file_string)
+
+        # Instance the Results class. It will spawn the read threads
+        result = Results(self.out_fifos, experiment.crop)
+
         # OK - finally - open a subprocess to run DSSAT from 'within'
         # the simulation's save directory, so that the files are saved there.
-        devnull = open(os.devnull, 'w')
+        supress_stdout = False
         if supress_stdout:
-            subprocess.run([self.dssat_exe, run_mode, batch_file],
-                           cwd=self.save_path,
+            devnull = open(os.devnull, 'w')
+            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['BATCH'].name],
+                           cwd=self.in_out_location,
                            stdout=devnull)
         else:
-            subprocess.run([self.dssat_exe, run_mode, batch_file],
-                           cwd=self.save_path)
+            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['BATCH'].name],
+                           cwd=self.in_out_location)
+
+        # Tell the Results object to join read threads now we have run DSSAT
+        result.read_outputs()
+
+        print(result.PlantGro)
+
+    def deploy_write_threads(self, weather_string, experiment_string, batch_string):
+        # Send threads off to write to fifos as soon as DSSAT tries to read from them
+        write_threads = []
+        if weather_string is not None:
+            write_threads.append(Thread(target=self.write_string_to_fifo,
+                                        args=(weather_string, self.in_fifos['WTH'],)))
+        write_threads.append(Thread(target=self.write_string_to_fifo,
+                                    args=(experiment_string, self.in_fifos['EXP'],)))
+        write_threads.append(Thread(target=self.write_string_to_fifo,
+                                    args=(batch_string, self.in_fifos['BATCH'],)))
+        [thread.start() for thread in write_threads]
+        return write_threads
+
+    def write_string_to_fifo(self, string, fifo):
+        # Blocks until DSSAT goes to read from the fifo
+        with open(fifo, 'w') as f:
+            f.write(string)
+
+    def read_from_fifo(self, fifo):
+        # Blocks until DSSAT writes to fifo
+        with open(fifo, 'r') as f:
+            output = f.read()
+        return output
 
     def forecast(self, forecast_start, num_years):
         """Define forecasting parameters for a forecast run.
@@ -130,22 +207,6 @@ class Experiment:
         self.forecast_start = forecast_start
         self.num_years = num_years
 
-    def _set_model(self, model):
-        # Check model has been implemented
-        if model not in self.implemented_models:
-            raise NotImplementedError(
-                f'Have not yet implemented {model} for dabbler.'
-            )
-        return model
-
-    def _set_crop(self, crop):
-        # Check is crop has been implemented
-        if crop.lower() not in self.implemented_crops:
-            NotImplementedError(
-                f'Have not yet implemented {crop} for dabbler.'
-            )
-        return crop
-
     def _check_install(self, dssat_install):
         install = Path(dssat_install)
         exe_loc = install.glob('dscsm047')
@@ -156,168 +217,112 @@ class Experiment:
                                f'directory at {install}')
         return str(exe)
 
-    def weather(self, weather, header=None):
-        """Add weather data.
 
-        Parameters
-        ----------
-        weather : pandas.DataFrame or str
-            If str, should be path to existing weather file.
-            Must have, at a minimum, columns '@DATE', 'TMAX', 'TMIN', 'RAIN'
-            '@DATE' is in format YYDOY, temp in deg C, rain in mm.
-        header : dict
-            containing keyed header information (see file_generator for needs)
-
-        Returns
-        -------
-        None
-        """
-
-        if isinstance(weather, str):
-            self.weather_file_loc = weather
-            self.weather_file = Path(weather).stem
-            return
-        try:
-            year = str(self.sim_start)[:2]
-        except AttributeError:
-            raise RuntimeError('Set experiment timing before setting weather.')
-        if isinstance(header, type(None)):
-            header = {'INSI': '',
-                      'LAT': 0,
-                      'LONG': 0,
-                      'ELEV': 0,
-                      'TAV': 0,
-                      'AMP': 0,
-                      'REFHT': 0,
-                      'WNDHT': 0,
-                      'location': ''}
-
-        filename = f'{self.EXP_ID}{year}01.WTH'
-
-        self.weather_file_loc = file_generator.generate_weather(filename,
-                                                            self.weather_path,
-                                                            weather,
-                                                            header)
-        self.weather_file = Path(self.weather_file_loc).stem
-
-    def phenology(self, crop, cultivar, model, template):
-        """Add phenology information to experiment.
-
-        Parameters
-        ----------
-        crop : str
-            'Maize', 'Wheat', etc.
-        cultivar : str
-            Cultivar code taken from relevant .CUL file
-        model : str
-            Model to be used e.g. 'MZIXM' for CERES-IXIM
-        template : str
-            Path to the template experiemnt file to be used.
-
-        Returns
-        -------
-        None
-        """
-        self.crop = self._set_crop(crop)
-        self.cultivar = cultivar
-        self.model = self._set_model(model)
-        self.template = template
-
-    def timing(self, sim_start, plant_start, plant_end, harvest_date):
-        """Add timing information to experiment.
-
-        Parameters
-        ----------
-        sim_start : int
-            YYDOY
-        plant_start : int
-            YYDOY
-        plant_end : int
-            YYDOY
-        harvest_date : int
-            YYDOY
-
-        Returns
-        -------
-        None
-        """
-        self.sim_start = sim_start
-        self.plant_start = plant_start
-        self.plant_end = plant_end
-        self.harvest_date = harvest_date
-
-    def soil(self, soil_id):
-        """Add soil ID to experiment
-
-        Parameters
-        ----------
-        soil_id : str
-            Soil ID from .SOL file e.g. 'IB00000007'
-
-        Returns
-        -------
-        None
-        """
-        self.soil_id = soil_id
+class Experiment(NamedTuple):
+    
+    crop: str
+    model: str
+    cultivar: str
+    plant_date: datetime.date
+    harvest_date: datetime.date
+    simulation_start: datetime.date
+    coordinates_latitude: float
+    coordinates_longitude: float
+    soil_data: pd.DataFrame = None
+    soil_code: str = None
+    weather_data: pd.DataFrame = None
+    weather_station_code: str = None
+    elevation: int = None
+    average_soil_temperature: float = None
+    average_soil_temp_amplitude: float = None
+    weather_measurements_refernce_height: float = None
+    wind_measurements_refernce_height: float = None
+    plant_end: datetime.date = None
+    harvest_end: datetime.date = None
+    experiment_ID: str = 'DFLT'
+    experiment_location_name: str = 'DFLT'
+    results_savelocation: str = None
+    forecast_from_date: datetime.date = None
+    num_forecast_years: int = None
 
 
 class Results:
-    # TODO: add in docstring that all tables are indexed by DOY
-    # TODO: add that all properties are their equivalent DSSAT output filenames
-    """Class to read in DSSAT results from .OUT files.
+    """Class to read in and format DSSAT results from fifos.
 
     Parameters
     ----------
-    output_dir : str
-        Location where DSSAT .OUT result files are.
+    output_fifos
+        Location of output fifos that DSSAT will write to.
     crop : str
         E.g. 'wheat', 'maize'
-    clear_dir : bool, opt
-        If true, delete files after loading them into this class.
     """
 
-    file_layouts = {'wheat': {'PlantGro.OUT': 3,
-                              'Evaluate.OUT': 4},
-                    'maize': {'PlantGro.OUT': 5,
-                              'Evaluate.OUT': 2}}
+    # Outfile layouts by crop. Number is rows to skip.
+    # If number is None, we just read from the output and trash it
+    file_layouts = {'maize': {'ERROR.OUT': None,
+                              'ET.OUT': 5,
+                              'Evaluate.OUT': 2,
+                              'INFO.OUT': None,
+                              'LUN.LST': None,
+                              'Mulch.OUT': 3,
+                              'N2O.OUT': 6,
+                              'OVERVIEW.OUT': None,
+                              'PlantGro.OUT': 5,
+                              'PlantN.OUT': 3,
+                              'RunList.OUT': None,
+                              'SoilNBalSum.OUT': 8,
+                              'SoilNiBal.OUT': None,
+                              'SoilNi.OUT': 5,
+                              'SoilNoBal.OUT': None,
+                              'SoilTemp.OUT': 7,
+                              'SoilWatBal.OUT': None,
+                              'SoilWat.OUT': 5,
+                              'Summary.OUT': None,
+                              'WARNING.OUT': None,
+                              'Weather.OUT': 3}
+                   }
 
-    def __init__(self, output_dir, crop, clear_dir=False):
-        crop = crop.lower()
-        self.output_dir = Path(output_dir)
-        self.clear_dir = clear_dir
-        self.Weather = self._load_table('Weather.OUT', 3)
-        self.PlantGro = self._load_table(
-            'PlantGro.OUT',
-            self.file_layouts[crop]['PlantGro.OUT']
-        )
-        self.PlantN = self._load_table('PlantN.OUT', 3)
-        self.ET = self._load_table('ET.OUT', 5)
-        self.Evaluate = self._load_table(
-            'Evaluate.OUT',
-            self.file_layouts[crop]['Evaluate.OUT'],
-            '@RUN'
-        )
-        self.Mulch = self._load_table('Mulch.OUT', 3)
-        self.N2O = self._load_table('N2O.OUT', 6)
-        self.SoilNBalSum = self._load_table('SoilNBalSum.OUT', 8, '@Run')
-        self.SoilNi = self._load_table('SoilNi.OUT', 5)
-        self.SoilTemp = self._load_table('SoilTemp.OUT', 7)
-        self.SoilWat = self._load_table('SoilWat.OUT', 5)
-        self._load_INFO()
-        self._set_overview()
 
-    def _load_table(self, table_name, skiprows=0, index='DOY', numrows=None):
+    def __init__(self, output_fifos, crop):
+        self.output_fifos = output_fifos
+        self.crop = crop.lower()
+        self.read_threads = self.start_read_threads()
 
-        table_loc = self.output_dir.joinpath(table_name)
-        try:
-            table = pd.read_csv(table_loc, sep='\s+', skiprows=skiprows,  # noqa
-                                nrows=numrows)
-        except FileNotFoundError:
-            return False  # This file wasn't computed for the DSSAT run
-        # If index for the table is DOY then also generate a date column
-        # and change the index itself to YYYYDDD so that simulations that span
-        # more than one year are handled correctly down the line.
-        # Otherwise, use specified index.
+    def start_read_threads(self):
+        read_threads = {}
+        for fifo_name in self.output_fifos:
+            read_threads[fifo_name] = Thread(
+                target=self._load_table,
+                args=(self.output_fifos[fifo_name],
+                self.file_layouts[self.crop][fifo_name])
+            )
+            read_threads[fifo_name].start()
+        return read_threads
+
+    def read_outputs(self):
+        results = self.get_results_from_read_threads(self.read_threads)
+        # Set results tables as attributes of object
+        for result in results:
+            setattr(self, result, results[result])
+
+    def get_results_from_read_threads(self, read_threads):
+        results = {}
+        for fifo_name in read_threads:
+            results[fifo_name] = read_threads[fifo_name].join()
+        return results
+
+    def _load_table(self, fifo_loc, skiprows=0, index='DOY', numrows=None):
+
+        with open(fifo_loc, 'r') as fifo:
+            while True:
+                select.select([fifo],[],[fifo])
+                out_string = fifo.read()
+
+        if skiprows is None:
+            return None
+
+        table = pd.read_csv(StringIO(out_string), sep='\s+', skiprows=skiprows,  # noqa
+                            nrows=numrows)
         if index == 'DOY':
             DOY_leading_zeroes = table['DOY'].apply('{:0>3}'.format)
             year_day = (table['@YEAR'].astype(str) +
@@ -325,9 +330,6 @@ class Results:
             table.index = year_day
         else:
             table.index = table[index]
-
-        if self.clear_dir:
-            table_loc.unlink()
 
         return table
 

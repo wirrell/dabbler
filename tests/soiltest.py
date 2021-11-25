@@ -11,14 +11,14 @@ from shapely.geometry import Polygon
 
 # Load in test fields
 fields = {}
-with open('test/field.geojson', 'r') as field_file:
+with open('test_data/field.geojson', 'r') as field_file:
     field_json = json.load(field_file)
 field = Polygon(field_json['features'][0]['geometry']['coordinates'][0])
-fields['TXST000001'] = field
-with open('test/field2.geojson', 'r') as field_file:
+fields['TTST000001'] = field
+with open('test_data/field2.geojson', 'r') as field_file:
     field_json = json.load(field_file)
 field = Polygon(field_json['features'][0]['geometry']['coordinates'][0])
-fields['TEST000002'] = field
+fields['TTST000002'] = field
 
 # Test dssat_soil
 SG = SoilGenerator(save_location='./test/')
