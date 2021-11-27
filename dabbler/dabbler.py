@@ -17,9 +17,9 @@ from io import StringIO
 from typing import NamedTuple
 
 
-# TODO: change DSSAT to enable writing to FIFOs so that OPEN doesn't cause illegal seek
-# See: https://stackoverflow.com/questions/11780556/write-to-fifo-named-pipe
-# NOTE: this may also make it possible to uncomment the commented out files in DSSAT_OUT_FILES
+# TODO: add track_nitrogen and track_water variables to Experiment, then use that to select
+# which fifos are built (e.g. SoilNBalSum.OUT is not used when no N tracked)
+# TODO: get a return value from read threads
 
 
 class DSSAT:
@@ -41,15 +41,15 @@ class DSSAT:
         # 'INFO.OUT',
         # 'LUN.LST',
         'Mulch.OUT',
-        'N2O.OUT',
+        # 'N2O.OUT', NOTE: not currently used in our applications
         'OVERVIEW.OUT',
         'PlantGro.OUT',
         'PlantN.OUT',
         'RunList.OUT',
-        'SoilNBalSum.OUT',
-        'SoilNiBal.OUT',
-        'SoilNi.OUT',
-        'SoilNoBal.OUT',
+        # 'SoilNBalSum.OUT',
+        # 'SoilNiBal.OUT',
+        # 'SoilNi.OUT',
+        # 'SoilNoBal.OUT',
         'SoilTemp.OUT',
         'SoilWatBal.OUT',
         'SoilWat.OUT',
@@ -66,7 +66,6 @@ class DSSAT:
         'BATCH': 'BATCH.v47'
     }
     # No fifos used for soil.
-
 
     def __init__(self, dssat_install, dssat_weather, dssat_soil, run_location=Path.cwd()):
         self.dssat_exe = self._check_install(dssat_install)
@@ -136,7 +135,7 @@ class DSSAT:
 
         # Generate the batch file so we can run in with subprocess
         batch_file_string = file_generator.generate_batchfile_string(experiment,
-                                                              self.in_fifos['EXP'])
+                                                              self.in_fifos['BATCH'])
 
         # Deploy write threads to wait for DSSAT read by themselves
         self.deploy_write_threads(weather_file_string,
@@ -151,11 +150,11 @@ class DSSAT:
         supress_stdout = False
         if supress_stdout:
             devnull = open(os.devnull, 'w')
-            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['BATCH'].name],
+            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['EXP'].name],
                            cwd=self.in_out_location,
                            stdout=devnull)
         else:
-            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['BATCH'].name],
+            subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['EXP'].name],
                            cwd=self.in_out_location)
 
         # Tell the Results object to join read threads now we have run DSSAT
@@ -260,14 +259,14 @@ class Results:
     # Outfile layouts by crop. Number is rows to skip.
     # If number is None, we just read from the output and trash it
     file_layouts = {'maize': {'ERROR.OUT': None,
-                              'ET.OUT': 5,
-                              'Evaluate.OUT': 2,
+                              'ET.OUT': 4,
+                              'Evaluate.OUT': 1,
                               'INFO.OUT': None,
                               'LUN.LST': None,
-                              'Mulch.OUT': 3,
+                              'Mulch.OUT': 2,
                               'N2O.OUT': 6,
                               'OVERVIEW.OUT': None,
-                              'PlantGro.OUT': 5,
+                              'PlantGro.OUT': 4,
                               'PlantN.OUT': 3,
                               'RunList.OUT': None,
                               'SoilNBalSum.OUT': 8,
@@ -303,18 +302,20 @@ class Results:
         results = self.get_results_from_read_threads(self.read_threads)
         # Set results tables as attributes of object
         for result in results:
-            setattr(self, result, results[result])
+            setattr(self, result.split('.')[0], results[result])
 
     def get_results_from_read_threads(self, read_threads):
         results = {}
         for fifo_name in read_threads:
+            raise NotImplementedError('Need to make a way for to '
+                                      'get the return value from the read threads')
             results[fifo_name] = read_threads[fifo_name].join()
         return results
 
     def _load_table(self, fifo_loc, skiprows=0, index='DOY', numrows=None):
-
         with open(fifo_loc, 'r') as fifo:
-            while True:
+            out_string = ''
+            while len(out_string) == 0:
                 select.select([fifo],[],[fifo])
                 out_string = fifo.read()
 
@@ -323,13 +324,11 @@ class Results:
 
         table = pd.read_csv(StringIO(out_string), sep='\s+', skiprows=skiprows,  # noqa
                             nrows=numrows)
-        if index == 'DOY':
+        if 'DOY' in table.columns:
             DOY_leading_zeroes = table['DOY'].apply('{:0>3}'.format)
             year_day = (table['@YEAR'].astype(str) +
                         DOY_leading_zeroes).astype(int)
             table.index = year_day
-        else:
-            table.index = table[index]
 
         return table
 
