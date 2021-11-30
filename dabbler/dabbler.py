@@ -6,19 +6,17 @@ import atexit
 import select
 import subprocess
 import pandas as pd
-import pathlib
 import datetime
 from . import file_generator
-from . import templates
 from threading import Thread
-from typing import Union
 from pathlib import Path
 from io import StringIO
 from typing import NamedTuple
 
 
-# TODO: add track_nitrogen and track_water variables to Experiment, then use that to select
-# which fifos are built (e.g. SoilNBalSum.OUT is not used when no N tracked)
+# TODO: add track_nitrogen and track_water variables to Experiment, then use
+# that to select which fifos are built (e.g. SoilNBalSum.OUT is not used when
+# no N tracked)
 # TODO: get a return value from read threads
 
 
@@ -32,8 +30,9 @@ class DSSAT:
     dssat_weather : str
         Path to the DSSAT weather file directory e.g. home/DSSAT/build/weather
     """
-    # NOTE: files commented out are files that DSSAT regularly reads from itself.
-    # Get cannot FIFO them as the result dissappears once we read from the FIFO
+    # NOTE: files commented out are files that DSSAT regularly reads from
+    # itself. We cannot FIFO them as the result dissappears once we read
+    # from the FIFO
     DSSAT_OUT_FILES = [
         # 'ERROR.OUT',
         'ET.OUT',
@@ -42,7 +41,7 @@ class DSSAT:
         # 'LUN.LST',
         'Mulch.OUT',
         # 'N2O.OUT', NOTE: not currently used in our applications
-        'OVERVIEW.OUT',
+        # 'OVERVIEW.OUT', NOTE: skip overview for now as it requires bytes read
         'PlantGro.OUT',
         'PlantN.OUT',
         'RunList.OUT',
@@ -63,11 +62,11 @@ class DSSAT:
     DSSAT_IN_FILES = {
         'EXP': 'PIPE0001.EXP',
         'WTH': 'PIPE{pid}.WTH',
-        'BATCH': 'BATCH.v47'
     }
     # No fifos used for soil.
 
-    def __init__(self, dssat_install, dssat_weather, dssat_soil, run_location=Path.cwd()):
+    def __init__(self, dssat_install, dssat_weather, dssat_soil,
+                 run_location=Path.cwd()):
         self.dssat_exe = self._check_install(dssat_install)
         self.dssat_weather = Path(dssat_weather)
         self.dssat_soil = Path(dssat_soil)
@@ -103,75 +102,70 @@ class DSSAT:
         self.in_fifos = {}
         pid = os.getpid()
         exp_fifo = self.in_out_location / self.DSSAT_IN_FILES['EXP']
-        # os.mkfifo(exp_fifo) EXP cant be fifo as DSSAT uses rewind multiple times
+        # os.mkfifo(exp_fifo) cant be fifo as DSSAT uses rewind multiple times
         self.in_fifos['EXP'] = exp_fifo
         wth_fifo = self.dssat_weather / self.DSSAT_IN_FILES['WTH'].format(
             pid=str(pid)[-4:]
         )
         os.mkfifo(wth_fifo)
         self.in_fifos['WTH'] = wth_fifo
-        batch_fifo = self.in_out_location / self.DSSAT_IN_FILES['BATCH']
-        os.mkfifo(batch_fifo)
-        self.in_fifos['BATCH'] = batch_fifo
 
     def run(self, experiment, supress_stdout=True):
         """Run the passed experiment.
 
         Returns
         -------
-        dabbler.Results 
+        dabbler.Results
         """
         weather_file_string = None
         if experiment.weather_station_code is None:
             weather_file_string = file_generator.generate_weather_file_string(
                 experiment
-        )
+            )
             experiment.weather_station_code = self.in_fifos['WTH'].stem
 
         if experiment.soil_code is None:
-            raise NotImplementedError('Have not yet implemented soil file writing.')
+            raise NotImplementedError(
+                'Have not implemented soil file writing.'
+            )
 
-        experiment_file_string = file_generator.generate_experiment_file_string(experiment)
-
-        # Generate the batch file so we can run in with subprocess
-        batch_file_string = file_generator.generate_batchfile_string(experiment,
-                                                              self.in_fifos['BATCH'])
+        experiment_file_string = \
+            file_generator.generate_experiment_file_string(experiment)
 
         # Deploy write threads to wait for DSSAT read by themselves
         self.deploy_write_threads(weather_file_string,
-                                  experiment_file_string,
-                                  batch_file_string)
+                                  experiment_file_string)
 
         # Instance the Results class. It will spawn the read threads
         result = Results(self.out_fifos, experiment.crop)
 
         # OK - finally - open a subprocess to run DSSAT from 'within'
         # the simulation's save directory, so that the files are saved there.
-        supress_stdout = False
         if supress_stdout:
             devnull = open(os.devnull, 'w')
             subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['EXP'].name],
-                           cwd=self.in_out_location,
-                           stdout=devnull)
+                             cwd=self.in_out_location,
+                             stdout=devnull)
         else:
             subprocess.Popen([self.dssat_exe, 'A', self.in_fifos['EXP'].name],
-                           cwd=self.in_out_location)
+                             cwd=self.in_out_location)
 
         # Tell the Results object to join read threads now we have run DSSAT
         result.read_outputs()
 
-        print(result.PlantGro)
+        return result
 
-    def deploy_write_threads(self, weather_string, experiment_string, batch_string):
-        # Send threads off to write to fifos as soon as DSSAT tries to read from them
+    def deploy_write_threads(self, weather_string, experiment_string):
+        # Send threads off to write to fifos as soon as DSSAT tries to
+        # read from them.
         write_threads = []
         if weather_string is not None:
             write_threads.append(Thread(target=self.write_string_to_fifo,
-                                        args=(weather_string, self.in_fifos['WTH'],)))
+                                        args=(weather_string,
+                                              self.in_fifos['WTH'],)))
         write_threads.append(Thread(target=self.write_string_to_fifo,
-                                    args=(experiment_string, self.in_fifos['EXP'],)))
-        write_threads.append(Thread(target=self.write_string_to_fifo,
-                                    args=(batch_string, self.in_fifos['BATCH'],)))
+                                    args=(experiment_string,
+                                          self.in_fifos['EXP'],)))
         [thread.start() for thread in write_threads]
         return write_threads
 
@@ -218,7 +212,7 @@ class DSSAT:
 
 
 class Experiment(NamedTuple):
-    
+
     crop: str
     model: str
     cultivar: str
@@ -279,8 +273,7 @@ class Results:
                               'Summary.OUT': None,
                               'WARNING.OUT': None,
                               'Weather.OUT': 3}
-                   }
-
+                    }
 
     def __init__(self, output_fifos, crop):
         self.output_fifos = output_fifos
@@ -290,10 +283,10 @@ class Results:
     def start_read_threads(self):
         read_threads = {}
         for fifo_name in self.output_fifos:
-            read_threads[fifo_name] = Thread(
+            read_threads[fifo_name] = ThreadWithReturnValue(
                 target=self._load_table,
                 args=(self.output_fifos[fifo_name],
-                self.file_layouts[self.crop][fifo_name])
+                      self.file_layouts[self.crop][fifo_name])
             )
             read_threads[fifo_name].start()
         return read_threads
@@ -307,18 +300,18 @@ class Results:
     def get_results_from_read_threads(self, read_threads):
         results = {}
         for fifo_name in read_threads:
-            raise NotImplementedError('Need to make a way for to '
-                                      'get the return value from the read threads')
             results[fifo_name] = read_threads[fifo_name].join()
         return results
 
     def _load_table(self, fifo_loc, skiprows=0, index='DOY', numrows=None):
+
         with open(fifo_loc, 'r') as fifo:
             out_string = ''
             while len(out_string) == 0:
-                select.select([fifo],[],[fifo])
+                select.select([fifo], [], [fifo])
                 out_string = fifo.read()
 
+        # Skip must be after read so that DSSAT can write to fifo
         if skiprows is None:
             return None
 
@@ -400,3 +393,20 @@ class Results:
 
     def __str__(self):
         return self.overview
+
+
+class ThreadWithReturnValue(Thread):
+    """Used to return value from a thread.
+    See: https://stackoverflow.com/questions/6893968"""
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return

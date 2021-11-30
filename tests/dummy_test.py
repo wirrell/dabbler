@@ -24,4 +24,9 @@ experiment = Experiment(
 
 dssat = DSSAT(dssat_bin, dssat_weather, dssat_soil)
 
-dssat.run(experiment)
+results = dssat.run(experiment)
+
+experiment = experiment._replace(plant_date = date(1982, 4, 25))
+results = dssat.run(experiment)
+
+print(results.PlantGro)
