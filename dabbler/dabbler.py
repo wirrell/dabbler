@@ -83,6 +83,8 @@ class DSSAT:
     def clean_in_out_on_exit(self):
         for io_file in self.in_out_location.glob('*'):
             io_file.unlink()
+        # remove weather file
+        self.in_fifos['WTH'].unlink()
         self.in_out_location.rmdir()
 
     def build_fifos(self):
@@ -407,6 +409,6 @@ class ThreadWithReturnValue(Thread):
         if self._target is not None:
             self._return = self._target(*self._args, **self._kwargs)
 
-    def join(self, *args):
-        Thread.join(self, *args)
+    def join(self, timeout=None):
+        Thread.join(self, timeout)
         return self._return
