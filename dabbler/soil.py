@@ -59,7 +59,7 @@ class SoilGenerator():
     def __init__(
         self,
         save_location,
-        soilgridsdata='/home/george/Documents/data/soil/SoilGrids/Iowa',
+        soilgridsdata='/home/george/Documents/data/soil/SoilGrids/global',
         HC27data=Path(__file__).parent / "../data/HC27"
     ):
         self.soilgridsdata = Path(soilgridsdata)
