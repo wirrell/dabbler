@@ -18,6 +18,7 @@ import io
 from . import PTF
 from .headers import get_header
 from pathlib import Path
+import shapely.geometry
 from shapely.geometry import LineString, box
 from shapely.ops import split, unary_union, transform
 from itertools import cycle
@@ -58,7 +59,6 @@ class SoilGenerator():
 
     def __init__(
         self,
-        save_location,
         soilgridsdata='/home/george/Documents/data/soil/SoilGrids/global',
         HC27data=Path(__file__).parent / "../data/HC27"
     ):
@@ -118,54 +118,28 @@ class SoilGenerator():
                                   index_col='SLB')
         return code, depth_table, properties
 
-
     def load_soillayer(self, soil_property, layer):
         """Load in rasterio dataset reference object for soil property layer."""
         return rasterio.open(
             self.soilgridsdata / soil_property / (layer + '.tif')
         )
 
-    def generate_soils(self, ROIs, loc_name, filename, append=False):
-        """Generate DSSAT soil tables for a list of ROIs.
-
+    def build_soils(self, ROIs):
+        """
+        Builds Soil objects containing all required DSSAT soil information.
         Parameters
         ----------
         ROIs : dict of shapely.geometry.Polygon in WGS84 coodinates
                 keyed by 10 character reference codes
-        loc_name : str
-            Location to save generated soil file.
-        filename : str
-            e.g. 'US.SOL'. NOTE: prefix must be 2 characters long
-        append : bool
-            If true, will append to a soil file if name already exists
-
-        Returns
-        -------
-        str
-            Absolute path to newly generated file.
         """
-
         # Reproject ROIs from WGS84 to SoilGrids projection:
         #   Interupted Goode Homolosine
-
         ROIs_WGS84 = ROIs
         ROIs = self._reproject_ROIs(ROIs)
 
         ROI_tables = ROIs.copy()
 
-        if len(filename.split('.')[0]) > 2:
-            raise ValueError(f'Filename {filename} must be of format XX.SOL')
-
         for ROI_key in ROIs:
-            if len(ROI_key) != 10:
-                raise ValueError('Keys to ROI must fit DSSAT format: '
-                                 'XXNNNNNNNN')
-            ROI_stub = ROI_key[:2]
-            if ROI_stub != filename.split('.')[0]:
-                raise ValueError(f'First two letters of ROI key {ROI_key} do not match'
-                                 f' the filename {filename}. They must match as DSSAT '
-                                 'uses the XX in XXNNNNNNNN key to search for the XX.'
-                                 'SOL file.')
             ROI_tables[ROI_key] = self._form_soil_DFs()
 
         # get bulk density, soil organic carbon conc, clay, silt, pH in water,
@@ -187,101 +161,76 @@ class SoilGenerator():
         # Find HC27 soil for each ROI and assign HC27 values
         ROI_properties, HC_codes = self._assign_HC27_properties(ROI_tables)
 
-        self.write_to_file(ROIs_WGS84,
-                           ROI_tables,
-                           ROI_properties,
-                           HC_codes,
+        # Build Soil objects
+        soils = []
+        for ROI_key in ROIs:
+            soils.append(Soil(ROI_tables[ROI_key],
+                              ROI_properties[ROI_key],
+                              HC_codes[ROI_key],
+                              ROIs_WGS84[ROI_key],
+                              ROI_key))
+        return soils
+
+
+    def generate_soil_file(self, ROIs, loc_name, filename, append=False):
+        """Generate a DSSAT soil file for a list of ROIs.
+
+        Parameters
+        ----------
+        ROIs : dict of shapely.geometry.Polygon in WGS84 coodinates
+                keyed by 10 character reference codes
+        loc_name : str
+            Location to save generated soil file.
+        filename : str
+            e.g. 'US.SOL'. NOTE: prefix must be 2 characters long
+        append : bool
+            If true, will append to a soil file if name already exists
+
+        Returns
+        -------
+        str
+            Absolute path to newly generated file.
+        """
+        if len(filename.split('.')[0]) > 2:
+            raise ValueError(f'Filename {filename} must be of format XX.SOL')
+
+        for ROI_key in ROIs:
+            if len(ROI_key) != 10:
+                raise ValueError('Keys to ROI must fit DSSAT format: '
+                                 'XXNNNNNNNN')
+            ROI_stub = ROI_key[:2]
+            if ROI_stub != filename.split('.')[0]:
+                raise ValueError(f'First two letters of ROI key {ROI_key} do not match'
+                                 f' the filename {filename}. They must match as DSSAT '
+                                 'uses the XX in XXNNNNNNNN key to search for the XX.'
+                                 'SOL file.')
+
+        soils = self.build_soils(ROIs)
+
+        self.write_to_file(soils,
                            Path(loc_name) / filename,
                            append)
 
         return Path(loc_name) / filename
 
 
-    def write_to_file(self, ROIs, ROI_tables, ROI_properties, HC_codes,
-                      filename, append):
-        """Write values to DSSAT soil file."""
+    def write_to_file(self, soils, filename, append):
+        """Write soil objects to DSSAT soil file."""
 
         # Set write mode
         write_mode = 'w'
         if append: write_mode = 'a'
 
-        # set DP rounding number
-        column_rounds = {'SLLL': 3,
-                         'SDUL': 3,
-                         'SSAT': 3,
-                         'SRGF': 2,
-                         'SSKS': 2,
-                         'SBDM': 2,
-                         'SLOC': 2,
-                         'SLCL': 2,
-                         'SLSI': 2,
-                         'SLCF': 1,
-                         'SLNI': 2,
-                         'SLHW': 2,
-                         'SLHB': 1,
-                         'SCEC': 1,
-                         'SADC': 1}
-
-        # Format tables into one string per ROI
-        full_write = ''
+        full_string = '\n'.join([str(soil) for soil in soils])
 
         with open(filename, write_mode) as f:
-            for ROI_code, HC_code in zip(ROIs, HC_codes):
-                depth_table = ROI_tables[ROI_code]
-                properties = ROI_properties[ROI_code]
-
-                # Remove SAND, we no longer need it
-                del depth_table['SAND']
-
-                # Round values
-                for col in column_rounds:
-                    depth_table[col] = np.round(depth_table[col].astype(float), column_rounds[col])
-
-                # Pad master horizon values
-
-                # First, build header
-                LON = ROIs[ROI_code].centroid.xy[0][0]
-                LAT = ROIs[ROI_code].centroid.xy[1][0]
-                header = get_header('soil').format(
-                    ROI_code=ROI_code,
-                    LONG=LON,
-                    LAT=LAT,
-                    family=HC_code,
-                    depth=depth_table.index[-1]
-                )
-
-                # Next build properties single row table
-                properties = properties.to_string(index=False,
-                                                  na_rep='   ').split('\n')
-                # pad the start of each line
-                properties[0] = '@ ' + properties[0]
-                properties[1] = '  ' + properties[1]
-                properties_string = '\n'.join(properties)
-
-                # Now build depth table string
-                # Have to split strip to get formatting exactly right for DSSAT
-                strings = depth_table.to_string(index=False,
-                                                na_rep='   ').split('\n')
-                # Pad the start of each line for DSSAT formatting
-                formatted_strings = ['@ ' + strings[0]] + [
-                    '  ' + x for x in strings[1:]
-                ]
-                
-                depth_table_string = '\n'.join(formatted_strings)
-
-                # Write formatted strings to file
-                f.write(header)
-                f.write('\n')
-                f.write(properties_string)
-                f.write('\n')
-                f.write(depth_table_string)
-                f.write('\n\n')
+            f.write(full_string)
 
 
     def _calculate_HC27_soils(self, ROI_tables):
         """Find HC27 generic soils closest to target soils based on HarvestChoice
         decision tree."""
-        HC_codes = []
+        HC_codes = {}
 
         # NOTE: we sum up to an HC27 code based on soil properties.
         # See paper in docstring for HC27 decision tree
@@ -323,7 +272,7 @@ class SoilGenerator():
             elif soc < 0.7:
                 HC_code = HC_code + 6
 
-            HC_codes.append(f'HC_GEN00{HC_code}')
+            HC_codes[ROI] = f'HC_GEN00{HC_code}'
 
         return HC_codes
 
@@ -333,7 +282,7 @@ class SoilGenerator():
 
         soil_properties = {}
 
-        for HC_code, (ROI, depth_table) in zip(HC_codes, ROI_tables.items()):
+        for (ROI, HC_code), (ROI, depth_table) in zip(HC_codes.items(), ROI_tables.items()):
             HC_depth_table, HC_properties = self.HC27_soils[HC_code]
             # Do properties
             properties = HC_properties.copy()
@@ -491,3 +440,97 @@ class SoilGenerator():
         soil_depth['SADC'] = -99  # SADC not mentioned but it is also -99 in files
 
         return soil_depth
+
+
+class Soil:
+    """Data structure that holds all require soil information for DSSAT."""
+    # set DP rounding number
+    column_rounds = {'SLLL': 3,
+                     'SDUL': 3,
+                     'SSAT': 3,
+                     'SRGF': 2,
+                     'SSKS': 2,
+                     'SBDM': 2,
+                     'SLOC': 2,
+                     'SLCL': 2,
+                     'SLSI': 2,
+                     'SLCF': 1,
+                     'SLNI': 2,
+                     'SLHW': 2,
+                     'SLHB': 1,
+                     'SCEC': 1,
+                     'SADC': 1}
+
+
+    def __init__(self,
+                 depth_table : pd.DataFrame,
+                 properties : pd.DataFrame,
+                 HC_code : str,
+                 ROI_WGS84 : shapely.geometry.Polygon,
+                 ROI_code : str):
+        self.depth_table = depth_table
+        self.properties = properties
+        self.HC_code = HC_code
+        self.ROI_WGS84 = ROI_WGS84
+        self.ROI_code = ROI_code
+        self.coordinates = (ROI_WGS84.centroid.xy[0][0],
+                            ROI_WGS84.centroid.xy[1][0])
+        self._build_string_repr()
+
+    def __repr__(self):
+        return self._rep_string
+
+    def _build_string_repr(self):
+
+        full_string = ''
+
+        depth_table = self.depth_table
+        properties = self.properties
+
+        # Remove SAND, we no longer need it
+        del depth_table['SAND']
+
+        # Round values
+        for col in self.column_rounds:
+            depth_table[col] = np.round(depth_table[col].astype(float), self.column_rounds[col])
+
+        # Pad master horizon values
+
+        # First, build header
+        LON, LAT = self.coordinates
+        header = get_header('soil').format(
+            ROI_code=self.ROI_code,
+            LONG=LON,
+            LAT=LAT,
+            family=self.HC_code,
+            depth=depth_table.index[-1]
+        )
+
+        # Next build properties single row table
+        properties = properties.to_string(index=False,
+                                          na_rep='   ').split('\n')
+        # pad the start of each line
+        properties[0] = '@ ' + properties[0]
+        properties[1] = '  ' + properties[1]
+        properties_string = '\n'.join(properties)
+
+        # Now build depth table string
+        # Have to split strip to get formatting exactly right for DSSAT
+        strings = depth_table.to_string(index=False,
+                                        na_rep='   ').split('\n')
+        # Pad the start of each line for DSSAT formatting
+        formatted_strings = ['@ ' + strings[0]] + [
+            '  ' + x for x in strings[1:]
+        ]
+        
+        depth_table_string = '\n'.join(formatted_strings)
+
+        # Write formatted strings to file
+        full_string = full_string + header
+        full_string = full_string + '\n'
+        full_string = full_string + properties_string
+        full_string = full_string + '\n'
+        full_string = full_string + depth_table_string
+        full_string = full_string + '\n\n'
+
+        self._rep_string = full_string

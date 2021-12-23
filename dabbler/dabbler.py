@@ -62,6 +62,7 @@ class DSSAT:
     DSSAT_IN_FILES = {
         'EXP': 'PIPE0001.EXP',
         'WTH': 'PIPE{pid}.WTH',
+        'BATCH': 'BTCH{pid}.v47',
     }
     # No fifos used for soil.
 
@@ -83,9 +84,14 @@ class DSSAT:
     def clean_in_out_on_exit(self):
         for io_file in self.in_out_location.glob('*'):
             io_file.unlink()
-        # remove weather file
-        self.in_fifos['WTH'].unlink()
+        self.remove_weather_file()
         self.in_out_location.rmdir()
+
+    def remove_weather_file(self):
+        try:
+            self.in_fifos['WTH'].unlink()
+        except FileNotFoundError:
+            pass
 
     def build_fifos(self):
         """Builds the fifos used to interface with DSSAT."""
@@ -109,8 +115,13 @@ class DSSAT:
         wth_fifo = self.dssat_weather / self.DSSAT_IN_FILES['WTH'].format(
             pid=str(pid)[-4:]
         )
-        os.mkfifo(wth_fifo)
+        # os.mkfifo(wth_fifo) cant be fifo as DSSAT uses rewind on WTH also
         self.in_fifos['WTH'] = wth_fifo
+        batch_fifo = self.in_out_location / self.DSSAT_IN_FILES['BATCH'].format(
+            pid=str(pid)[-4:]
+        )
+        os.mkfifo(batch_fifo)
+        self.in_fifos['BATCH'] = batch_fifo
 
     def run(self, experiment, supress_stdout=True):
         """Run the passed experiment.
@@ -124,7 +135,9 @@ class DSSAT:
             weather_file_string = file_generator.generate_weather_file_string(
                 experiment
             )
-            experiment.weather_station_code = self.in_fifos['WTH'].stem
+            experiment = experiment._replace(
+                weather_station_code = self.in_fifos['WTH'].stem
+            )
 
         if experiment.soil_code is None:
             raise NotImplementedError(
@@ -239,6 +252,7 @@ class Experiment(NamedTuple):
     results_savelocation: str = None
     forecast_from_date: datetime.date = None
     num_forecast_years: int = None
+    irrigation: str = 'N'  # Can be R, N, A for reported, no, automatic
 
 
 class Results:

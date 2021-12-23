@@ -62,7 +62,8 @@ def generate_experiment_file_string(experiment):
              else experiment.harvest_end.strftime('%y%j'),
              'HDT': experiment.harvest_date.strftime('%y%j'),
              'WST': experiment.weather_station_code,
-             'LOC': experiment.experiment_location_name}
+             'LOC': experiment.experiment_location_name,
+             'IRIG': experiment.irrigation}
 
     if experiment.forecast_from_date is not None:
         terms['FODAT'] = experiment.forecast_from_date  
@@ -102,7 +103,7 @@ def generate_weather_file_string(experiment):
                        'TMIN', 'RAIN', 'DEWP', 'WIND',
                        'PAR', 'EVAP', 'RHUM']
 
-    weather_data = weather_data.round(1)
+    weather_data = experiment.weather_data.round(1)
 
     # Make wind data a whole int
     if 'WIND' in weather_data.columns:
@@ -228,7 +229,7 @@ def collate_weather_header_information(experiment):
         'AMP': -99,
         'REFHT': -99,
         'WNDHT': -99,
-        'location': experiemnt.experiment_location_name
+        'location': experiment.experiment_location_name
     }
     if experiment.elevation is not None:
         header_data['ELEV'] = experiment.elevation

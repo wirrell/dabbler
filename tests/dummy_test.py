@@ -25,7 +25,6 @@ experiment = Experiment(
 dssat = DSSAT(dssat_bin, dssat_weather, dssat_soil)
 
 results = dssat.run(experiment)
-input()
 
 experiment = experiment._replace(plant_date = date(1982, 4, 25))
 results = dssat.run(experiment)
