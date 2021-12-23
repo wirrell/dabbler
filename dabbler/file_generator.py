@@ -10,6 +10,7 @@ from pathlib import Path
 from .headers import get_header
 from . import dabbler_errors
 from . import templates
+from . import dabbler
 
 def gen_weather_name(ASD, county, year, gen_names):
     # Generate a weather file name
@@ -42,6 +43,8 @@ def generate_experiment_file_string(experiment):
         raise ValueError('Experiment weather station code not set.')
     if experiment.soil_code is None:
         raise ValueError('Experiment soil code not set.')
+    if experiment.irrigation is not 'N':
+        check_valid_irrigation_setup(experiment)
 
     # Read in the experiment template file
     template = templates.get_template_for_crop(experiment.crop) 
@@ -62,8 +65,9 @@ def generate_experiment_file_string(experiment):
              else experiment.harvest_end.strftime('%y%j'),
              'HDT': experiment.harvest_date.strftime('%y%j'),
              'WST': experiment.weather_station_code,
-             'LOC': experiment.experiment_location_name,
-             'IRIG': experiment.irrigation}
+             'LOC': experiment.experiment_location_name}
+
+    terms = format_irrigation_terms(terms, experiment)
 
     if experiment.forecast_from_date is not None:
         terms['FODAT'] = experiment.forecast_from_date  
@@ -75,6 +79,32 @@ def generate_experiment_file_string(experiment):
     experiment_file_string = template.format(**terms)
 
     return experiment_file_string 
+
+
+def format_irrigation_terms(terms, experiment):
+    terms['IRIG'] = experiment.irrigation
+    management = experiment.irrigation_management
+    terms['IMDEP'] = str(management.irrigation_management_depth).rjust(3)
+    terms['ITHRL'] = str(management.irrigation_threshold_lower).rjust(3)
+    terms['ITHRU'] = str(management.irrigation_threshold_upper).rjust(3)
+    terms['IMETH'] = str(management.irrigation_method_code).rjust(5)
+    terms['IROFF'] = str(management.irrigation_stage_off).rjust(5)
+    terms['IRAMT'] = str(management.irrigation_amount).rjust(3)
+    terms['IREFF'] = str(management.irrigation_efficiency).rjust(5)
+    return terms
+
+
+def check_valid_irrigation_setup(experiment):
+    if experiment.irrigation == 'R':
+        raise NotImplementedError('Scheduled irrigation not yet implemented.')
+    if experiment.irrigation == 'A':
+        if not isinstance(experiment.irrigation_management,
+                          dabbler.AutomaticIrrigationManagement):
+            raise ValueError(
+                'If irrigation is set to "A", you must pass a'
+                ' dabbler.AutomaticIrrigationManagement object'
+                ' in the Experiment.irrigation_management variable.'
+            )
 
 
 def generate_weather_file_string(experiment):

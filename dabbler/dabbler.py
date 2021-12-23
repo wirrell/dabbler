@@ -82,6 +82,7 @@ class DSSAT:
         atexit.register(self.clean_in_out_on_exit)
 
     def clean_in_out_on_exit(self):
+        exit()
         for io_file in self.in_out_location.glob('*'):
             io_file.unlink()
         self.remove_weather_file()
@@ -226,6 +227,17 @@ class DSSAT:
         return str(exe)
 
 
+class AutomaticIrrigationManagement(NamedTuple):
+    """Setting for automatic irrigation management."""
+    irrigation_method_code: str = 'IR001'  # See DSSAT DETAIL.CDE
+    irrigation_management_depth: int = 30
+    irrigation_threshold_lower: int = 50
+    irrigation_threshold_upper: int = 100
+    irrigation_stage_off: str = 'GS000'
+    irrigation_amount:int = 10
+    irrigation_efficiency: float = 1
+
+
 class Experiment(NamedTuple):
 
     crop: str
@@ -253,6 +265,7 @@ class Experiment(NamedTuple):
     forecast_from_date: datetime.date = None
     num_forecast_years: int = None
     irrigation: str = 'N'  # Can be R, N, A for reported, no, automatic
+    irrigation_management: AutomaticIrrigationManagement = AutomaticIrrigationManagement()
 
 
 class Results:
@@ -285,7 +298,7 @@ class Results:
                               'SoilNoBal.OUT': None,
                               'SoilTemp.OUT': 7,
                               'SoilWatBal.OUT': None,
-                              'SoilWat.OUT': 5,
+                              'SoilWat.OUT': 4,
                               'Summary.OUT': None,
                               'WARNING.OUT': None,
                               'Weather.OUT': 3}
