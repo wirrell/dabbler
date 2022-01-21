@@ -26,20 +26,6 @@ from rasterio.plot import show
 from rasterio.io import MemoryFile
 from soiltexture import getTexture
 
-# List maps.isric.org services avaiable
-services = {'wrb': 'https://maps.isric.org/mapserv?map=/map/wrb.map',
-            'bdod': 'https://maps.isric.org/mapserv?map=/map/bdod.map',
-            'cec': 'https://maps.isric.org/mapserv?map=/map/cec.map',
-            'cfvo': 'https://maps.isric.org/mapserv?map=/map/cfvo.map',
-            'clay': 'https://maps.isric.org/mapserv?map=/map/clay.map',
-            'nitrogen': 'https://maps.isric.org/mapserv?map=/map/nitrogen.map',
-            'phh2o': 'https://maps.isric.org/mapserv?map=/map/phh2o.map',
-            'sand': 'https://maps.isric.org/mapserv?map=/map/sand.map',
-            'silt': 'https://maps.isric.org/mapserv?map=/map/silt.map',
-            'soc': 'https://maps.isric.org/mapserv?map=/map/soc.map',
-            'ocs': 'https://maps.isric.org/mapserv?map=/map/osc.map',
-            'ocd': 'https://maps.isric.org/mapserv?map=/map/ocd.map'}
-
 ROI_CRS = 'EPSG:4326'
 
 class SoilGenerator():

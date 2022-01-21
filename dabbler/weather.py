@@ -171,7 +171,6 @@ def get_daymet_data(lon, lat, year):
     MJ_hour = watts * 0.0036
     MJ_day = MJ_hour * (weather['dayl (s)'] / (60 ** 2))
 
-
     field_df['@DATE'] = weather.index
     field_df['RAIN'] = weather['prcp (mm/day)']
     field_df['SRAD'] = MJ_day

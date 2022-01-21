@@ -2,12 +2,14 @@
 dabbler - a simple Python wrapper for DSSAT.
 """
 import os
+import time
 import atexit
 import select
 import subprocess
 import pandas as pd
 import datetime
 from . import file_generator
+from . import soil
 from threading import Thread
 from pathlib import Path
 from io import StringIO
@@ -60,16 +62,16 @@ class DSSAT:
     # Have to format fifos for weathe soil inputs as it
     # must reside in the /build/Weather
     DSSAT_IN_FILES = {
-        'EXP': 'PIPE0001.EXP',
-        'WTH': 'PIPE{pid}.WTH',
+        'EXP': 'EXPT0001.EXP',
+        'WTH': 'WTHR{pid}.WTH',
+        'SOIL': 'SOIL.SOL',
         'BATCH': 'BTCH{pid}.v47',
     }
     # No fifos used for soil.
 
-    def __init__(self, dssat_install, dssat_weather, dssat_soil,
+    def __init__(self, dssat_install, dssat_soil,
                  run_location=Path.cwd()):
         self.dssat_exe = self._check_install(dssat_install)
-        self.dssat_weather = Path(dssat_weather)
         self.dssat_soil = Path(dssat_soil)
         self.create_in_out_location()
         self.build_fifos()
@@ -82,7 +84,6 @@ class DSSAT:
         atexit.register(self.clean_in_out_on_exit)
 
     def clean_in_out_on_exit(self):
-        exit()
         for io_file in self.in_out_location.glob('*'):
             io_file.unlink()
         self.remove_weather_file()
@@ -113,7 +114,10 @@ class DSSAT:
         exp_fifo = self.in_out_location / self.DSSAT_IN_FILES['EXP']
         # os.mkfifo(exp_fifo) cant be fifo as DSSAT uses rewind multiple times
         self.in_fifos['EXP'] = exp_fifo
-        wth_fifo = self.dssat_weather / self.DSSAT_IN_FILES['WTH'].format(
+        soil_fifo = self.in_out_location / self.DSSAT_IN_FILES['SOIL']
+        # os.mkfifo(soil_fifo) cant be fifo as DSSAT uses rewind on file 
+        self.in_fifos['SOIL'] = soil_fifo
+        wth_fifo = self.in_out_location / self.DSSAT_IN_FILES['WTH'].format(
             pid=str(pid)[-4:]
         )
         # os.mkfifo(wth_fifo) cant be fifo as DSSAT uses rewind on WTH also
@@ -140,9 +144,11 @@ class DSSAT:
                 weather_station_code = self.in_fifos['WTH'].stem
             )
 
+        soil_file_string = None
         if experiment.soil_code is None:
-            raise NotImplementedError(
-                'Have not implemented soil file writing.'
+            soil_file_string = str(experiment.soil_data)  # soil.Soil object
+            experiment = experiment._replace(
+                soil_code= experiment.soil_data.ROI_code
             )
 
         experiment_file_string = \
@@ -150,7 +156,8 @@ class DSSAT:
 
         # Deploy write threads to wait for DSSAT read by themselves
         self.deploy_write_threads(weather_file_string,
-                                  experiment_file_string)
+                                  experiment_file_string,
+                                  soil_file_string)
 
         # Instance the Results class. It will spawn the read threads
         result = Results(self.out_fifos, experiment.crop)
@@ -171,10 +178,14 @@ class DSSAT:
 
         return result
 
-    def deploy_write_threads(self, weather_string, experiment_string):
+    def deploy_write_threads(self, weather_string, experiment_string, soil_string):
         # Send threads off to write to fifos as soon as DSSAT tries to
         # read from them.
         write_threads = []
+        if soil_string is not None:
+            write_threads.append(Thread(target=self.write_string_to_fifo,
+                                        args=(soil_string,
+                                              self.in_fifos['SOIL'],)))
         if weather_string is not None:
             write_threads.append(Thread(target=self.write_string_to_fifo,
                                         args=(weather_string,
@@ -239,7 +250,6 @@ class AutomaticIrrigationManagement(NamedTuple):
 
 
 class Experiment(NamedTuple):
-
     crop: str
     model: str
     cultivar: str
@@ -248,7 +258,7 @@ class Experiment(NamedTuple):
     simulation_start: datetime.date
     coordinates_latitude: float
     coordinates_longitude: float
-    soil_data: pd.DataFrame = None
+    soil_data: soil.Soil = None
     soil_code: str = None
     weather_data: pd.DataFrame = None
     weather_station_code: str = None
@@ -281,6 +291,8 @@ class Results:
 
     # Outfile layouts by crop. Number is rows to skip.
     # If number is None, we just read from the output and trash it
+    # NOTE: these are line skips for when using pipes to interface with DSSAT.
+    #       DSSAT thinks that there is already a header in the existing file.
     file_layouts = {'maize': {'ERROR.OUT': None,
                               'ET.OUT': 4,
                               'Evaluate.OUT': 1,
@@ -290,18 +302,18 @@ class Results:
                               'N2O.OUT': 6,
                               'OVERVIEW.OUT': None,
                               'PlantGro.OUT': 4,
-                              'PlantN.OUT': 3,
+                              'PlantN.OUT': 2,
                               'RunList.OUT': None,
                               'SoilNBalSum.OUT': 8,
                               'SoilNiBal.OUT': None,
                               'SoilNi.OUT': 5,
                               'SoilNoBal.OUT': None,
-                              'SoilTemp.OUT': 7,
+                              'SoilTemp.OUT': 6,
                               'SoilWatBal.OUT': None,
                               'SoilWat.OUT': 4,
                               'Summary.OUT': None,
                               'WARNING.OUT': None,
-                              'Weather.OUT': 3}
+                              'Weather.OUT': 2}
                     }
 
     def __init__(self, output_fifos, crop):
@@ -328,17 +340,15 @@ class Results:
 
     def get_results_from_read_threads(self, read_threads):
         results = {}
-        for fifo_name in read_threads:
+        for fifo_name in sorted(read_threads):
             results[fifo_name] = read_threads[fifo_name].join()
         return results
 
     def _load_table(self, fifo_loc, skiprows=0, index='DOY', numrows=None):
 
         with open(fifo_loc, 'r') as fifo:
-            out_string = ''
-            while len(out_string) == 0:
-                select.select([fifo], [], [fifo])
-                out_string = fifo.read()
+            select.select([fifo], [], [fifo])
+            out_string = fifo.read()
 
         # Skip must be after read so that DSSAT can write to fifo
         if skiprows is None:

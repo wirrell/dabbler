@@ -1,0 +1,181 @@
+*INFO DETAIL FILE
+
+******************************************************************************
+
+*DSSAT Cropping System Model Ver. 4.7.5.042 -develop  JAN 20, 2022 15:55:41
+
+ MAKEFW  YEAR DOY =    0   0
+ Y4KDOY - Weather file                                                         
+ Not able to find 7-digits first weather date                                  
+ Set simulation to 5-digits first weather date                                 
+
+ IPFLD   YEAR DOY =    0   0
+ Plastic mulch cover albedo =   0.00                                           
+
+ CSM     YEAR DOY = 1982   1
+ RNMODE = A                                                                    
+ PATHEX =                                                                      
+ FILEX  = EXPT0001.EXP                                                         
+ FILEB  =                                                                      
+ FILEIO = DSSAT47.INP                                                          
+ MODEL  = MZIXM047                                                             
+ TRTNUM =     1                                                                
+
+ SOILDYN  YEAR DOY = 1982   1
+ The soil file has missing or invalid data.                                    
+ Default values have been used for these variables:                            
+   STONES, ADCOEF                                                              
+ These defaults may or may not be important to your results.                   
+
+ RETC  YEAR DOY = 1982   1
+ Soil RETC parameters:                                                         
+  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
+   1   5  5.60 0.069   0.8 0.180  0.052 0.174 1.211 SandyLoam                  
+   2  15  5.52 0.069   0.8 0.181  0.052 0.175 1.212 SandyLoam                  
+   3  30  4.90 0.071   0.9 0.175  0.052 0.170 1.205 SandyLoam                  
+   4  45  4.71 0.071   0.8 0.173  0.053 0.168 1.202 SandyLoam                  
+   5  60  4.71 0.071   0.8 0.173  0.053 0.168 1.202 SandyLoam                  
+   6  80  4.72 0.071   0.7 0.168  0.058 0.165 1.198 SandyLoam                  
+   7 100  4.72 0.071   0.7 0.168  0.058 0.165 1.198 SandyLoam                  
+   8 150  5.68 0.065   0.7 0.179  0.057 0.176 1.213 SandyLoam                  
+   9 200  5.68 0.065   0.7 0.179  0.057 0.176 1.213 SandyLoam                  
+
+ SOILDYN  YEAR DOY = 1982   1
+ Soil ID: TEST000001                                                           
+   ISRIC SOILGRIDS + HC27                                                      
+   HC_GEN0011                                                                  
+   SALB SWCON    CN  DMOD  SLPF SMPX                                           
+   0.10  0.50  75.0  1.00  1.00 SA001                                          
+ Soil layer distribution method: 2                                             
+      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
+ LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
+   1   5     5 0.161 0.295 0.423 1.000  1.43  3.77  13.8  20.8  65.4   6.8     
+   2  15    10 0.160 0.294 0.421 0.850  1.52  3.50  14.6  22.2  63.2   6.7     
+   3  30    15 0.165 0.297 0.419 0.700  1.52  2.66  15.1  22.0  62.9   6.8     
+   4  45    15 0.165 0.294 0.415 0.500  1.59  1.75  15.7  22.6  61.7   6.9     
+   5  60    15 0.165 0.294 0.415 0.500  1.59  1.75  15.7  22.6  61.7   6.9     
+   6  80    20 0.164 0.287 0.408 0.380  1.63  0.64  16.0  21.9  62.1   7.1     
+   7 100    20 0.164 0.287 0.408 0.380  1.63  0.64  16.0  21.9  62.1   7.1     
+   8 150    50 0.150 0.274 0.402 0.060  1.62  0.26  14.5  23.0  62.5   7.7     
+   9 200    50 0.150 0.274 0.402 0.060  1.62  0.26  14.5  23.0  62.5   7.7     
+
+ SOILDYN  YEAR DOY = 1982   1
+ Additional soil properties                                                    
+                Convert                                                        
+    Cation Adsrp  ppm /  KSAT  SLCF  TOTN  OrgN                                
+   L  Exch  Coef  kg/ha  cm/h     %     % kg/ha                                
+   1  25.9   0.0   1.40   5.6   0.0  0.12   858                                
+   2  25.9   0.0   0.66   5.5   0.0  0.10  1519                                
+   3  25.1   0.0   0.44   4.9   0.0  0.07  1595                                
+   4  23.5   0.0   0.42   4.7   0.0  0.06  1430                                
+   5  23.5   0.0   0.42   4.7   0.0  0.06  1430                                
+   6  18.9   0.0   0.31   4.7   0.0  0.05  1628                                
+   7  18.9   0.0   0.31   4.7   0.0  0.05  1628                                
+   8  13.8   0.0   0.12   5.7   0.0  0.01   805                                
+   9  13.8   0.0   0.12   5.7   0.0  0.01   805                                
+
+ IPWTH   YEAR DOY = 1982   1
+ ///home/george/DSSAT/build/Weather/UFGA8201.WTH                               
+ Found daily weather data headers for:                                         
+   SRAD           Col   7 -  11                                                
+   TMAX           Col  13 -  17                                                
+   TMIN           Col  19 -  23                                                
+   RAIN           Col  25 -  29                                                
+   PAR            Col  31 -  47                                                
+
+ CO2VAL  YEAR DOY = 1982   1
+  755 CO2 data points read from file.                                          
+ ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
+
+ ENDRUN  YEAR DOY = 1982 176
+ Normal end of run        1                                                    
+
+******************************************************************************
+
+*DSSAT Cropping System Model Ver. 4.7.5.042 -develop  JAN 20, 2022 15:55:43
+
+ MAKEFW  YEAR DOY =    0   0
+ Y4KDOY - Weather file                                                         
+ Not able to find 7-digits first weather date                                  
+ Set simulation to 5-digits first weather date                                 
+
+ IPFLD   YEAR DOY =    0   0
+ Plastic mulch cover albedo =   0.00                                           
+
+ CSM     YEAR DOY = 1982   1
+ RNMODE = A                                                                    
+ PATHEX =                                                                      
+ FILEX  = EXPT0001.EXP                                                         
+ FILEB  =                                                                      
+ FILEIO = DSSAT47.INP                                                          
+ MODEL  = MZIXM047                                                             
+ TRTNUM =     1                                                                
+
+ SOILDYN  YEAR DOY = 1982   1
+ The soil file has missing or invalid data.                                    
+ Default values have been used for these variables:                            
+   STONES, ADCOEF                                                              
+ These defaults may or may not be important to your results.                   
+
+ RETC  YEAR DOY = 1982   1
+ Soil RETC parameters:                                                         
+  LYR DS  SWCN   WCR    Hb Lambd  Alpha     m     n Texture                    
+   1   5  5.60 0.069   0.8 0.180  0.052 0.174 1.211 SandyLoam                  
+   2  15  5.52 0.069   0.8 0.181  0.052 0.175 1.212 SandyLoam                  
+   3  30  4.90 0.071   0.9 0.175  0.052 0.170 1.205 SandyLoam                  
+   4  45  4.71 0.071   0.8 0.173  0.053 0.168 1.202 SandyLoam                  
+   5  60  4.71 0.071   0.8 0.173  0.053 0.168 1.202 SandyLoam                  
+   6  80  4.72 0.071   0.7 0.168  0.058 0.165 1.198 SandyLoam                  
+   7 100  4.72 0.071   0.7 0.168  0.058 0.165 1.198 SandyLoam                  
+   8 150  5.68 0.065   0.7 0.179  0.057 0.176 1.213 SandyLoam                  
+   9 200  5.68 0.065   0.7 0.179  0.057 0.176 1.213 SandyLoam                  
+
+ SOILDYN  YEAR DOY = 1982   1
+ Soil ID: TEST000001                                                           
+   ISRIC SOILGRIDS + HC27                                                      
+   HC_GEN0011                                                                  
+   SALB SWCON    CN  DMOD  SLPF SMPX                                           
+   0.10  0.50  75.0  1.00  1.00 SA001                                          
+ Soil layer distribution method: 2                                             
+      DS DLAYR    LL   DUL   SAT  Root    BD    OC  CLAY  SILT  SAND           
+ LYR  cm    cm  frac  frac  frac  Grow g/cm3     %     %     %     %    pH     
+   1   5     5 0.161 0.295 0.423 1.000  1.43  3.77  13.8  20.8  65.4   6.8     
+   2  15    10 0.160 0.294 0.421 0.850  1.52  3.50  14.6  22.2  63.2   6.7     
+   3  30    15 0.165 0.297 0.419 0.700  1.52  2.66  15.1  22.0  62.9   6.8     
+   4  45    15 0.165 0.294 0.415 0.500  1.59  1.75  15.7  22.6  61.7   6.9     
+   5  60    15 0.165 0.294 0.415 0.500  1.59  1.75  15.7  22.6  61.7   6.9     
+   6  80    20 0.164 0.287 0.408 0.380  1.63  0.64  16.0  21.9  62.1   7.1     
+   7 100    20 0.164 0.287 0.408 0.380  1.63  0.64  16.0  21.9  62.1   7.1     
+   8 150    50 0.150 0.274 0.402 0.060  1.62  0.26  14.5  23.0  62.5   7.7     
+   9 200    50 0.150 0.274 0.402 0.060  1.62  0.26  14.5  23.0  62.5   7.7     
+
+ SOILDYN  YEAR DOY = 1982   1
+ Additional soil properties                                                    
+                Convert                                                        
+    Cation Adsrp  ppm /  KSAT  SLCF  TOTN  OrgN                                
+   L  Exch  Coef  kg/ha  cm/h     %     % kg/ha                                
+   1  25.9   0.0   1.40   5.6   0.0  0.12   858                                
+   2  25.9   0.0   0.66   5.5   0.0  0.10  1519                                
+   3  25.1   0.0   0.44   4.9   0.0  0.07  1595                                
+   4  23.5   0.0   0.42   4.7   0.0  0.06  1430                                
+   5  23.5   0.0   0.42   4.7   0.0  0.06  1430                                
+   6  18.9   0.0   0.31   4.7   0.0  0.05  1628                                
+   7  18.9   0.0   0.31   4.7   0.0  0.05  1628                                
+   8  13.8   0.0   0.12   5.7   0.0  0.01   805                                
+   9  13.8   0.0   0.12   5.7   0.0  0.01   805                                
+
+ IPWTH   YEAR DOY = 1982   1
+ ///home/george/DSSAT/build/Weather/UFGA8201.WTH                               
+ Found daily weather data headers for:                                         
+   SRAD           Col   7 -  11                                                
+   TMAX           Col  13 -  17                                                
+   TMIN           Col  19 -  23                                                
+   RAIN           Col  25 -  29                                                
+   PAR            Col  31 -  47                                                
+
+ CO2VAL  YEAR DOY = 1982   1
+  755 CO2 data points read from file.                                          
+ ///home/george/DSSAT/build/StandardData/CO2047.WDA                            
+
+ ENDRUN  YEAR DOY = 1982 176
+ Normal end of run        1                                                    
