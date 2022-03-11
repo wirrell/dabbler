@@ -20,8 +20,8 @@ from .headers import get_header
 from pathlib import Path
 from datetime import date, datetime
 
-def generate_weather(coordinates, year, loc_name, filename, savepath,
-                     source='DayMet'):
+
+def generate_weather(coordinates, year, loc_name, filename, savepath, source="DayMet"):
     """Generate a DSSAT weather file from DayMet weather data.
 
     Parameters
@@ -46,35 +46,45 @@ def generate_weather(coordinates, year, loc_name, filename, savepath,
     """
 
     # Get the weather data
-    if source == 'DayMet':
-        weather_data, elev, t_avg = get_daymet_data(coordinates[0],
-                                                     coordinates[1],
-                                                     year)
-    elif source == 'NASA-POWER':
-        weather_data, elev, t_avg = get_nasa_power_data(coordinates[0],
-                                                        coordinates[1],
-                                                        year)
+    if source == "DayMet":
+        weather_data, elev, t_avg = get_daymet_data(
+            coordinates[0], coordinates[1], year
+        )
+    elif source == "NASA-POWER":
+        weather_data, elev, t_avg = get_nasa_power_data(
+            coordinates[0], coordinates[1], year
+        )
     else:
         raise ValueError("'DayMet' or 'NASA-POWER' available.")
 
     # Form the header information
-    header_data = {'INSI': loc_name.split()[0],
-                   'LAT': coordinates[0],
-                   'LONG': coordinates[1],
-                   'ELEV': elev,
-                   'TAV': t_avg,
-                   'AMP': -99,
-                   'REFHT': -99,
-                   'WNDHT': -99,
-                   'location': loc_name}
+    header_data = {
+        "INSI": loc_name.split()[0],
+        "LAT": coordinates[0],
+        "LONG": coordinates[1],
+        "ELEV": elev,
+        "TAV": t_avg,
+        "AMP": -99,
+        "REFHT": -99,
+        "WNDHT": -99,
+        "location": loc_name,
+    }
 
     path = Path(savepath, filename)
 
     # Check for any missing weather columns and fill them with NaN
-    weather_columns = ['@DATE', 'SRAD',  'TMAX',
-                       'TMIN', 'RAIN', 'DEWP', 'WIND',
-                       'PAR', 'EVAP', 'RHUM']
-
+    weather_columns = [
+        "@DATE",
+        "SRAD",
+        "TMAX",
+        "TMIN",
+        "RAIN",
+        "DEWP",
+        "WIND",
+        "PAR",
+        "EVAP",
+        "RHUM",
+    ]
 
     weather_data = weather_data.round(1)
 
@@ -82,21 +92,19 @@ def generate_weather(coordinates, year, loc_name, filename, savepath,
         if col not in weather_data.columns:
             weather_data[col] = np.nan
 
-    # Set proper format justifications for columns 
-    justify = ['left'] + ['right'] * 9
+    # Set proper format justifications for columns
+    justify = ["left"] + ["right"] * 9
 
-
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         # Write the header to file
-        _build_header(f, 'weather', header_data)
+        _build_header(f, "weather", header_data)
 
         # Have to split and strip to get formatting exactly right for DSSAT
-        strings = weather_data.to_string(index=False,
-                                       columns=weather_columns,
-                                       na_rep='   ',
-                                       justify=justify).split('\n')
+        strings = weather_data.to_string(
+            index=False, columns=weather_columns, na_rep="   ", justify=justify
+        ).split("\n")
         strings = [x.strip() for x in strings]
-        string = '\n'.join(strings)
+        string = "\n".join(strings)
 
         f.write(string)
         f.close()
@@ -145,42 +153,44 @@ def get_daymet_data(lon, lat, year):
     field_df : pandas.DataFrame
     """
 
-    query = ('https://daymet.ornl.gov/single-pixel/api/data?'
-              'lat={lat}&lon={lon}&years={year}')
+    query = (
+        "https://daymet.ornl.gov/single-pixel/api/data?"
+        "lat={lat}&lon={lon}&years={year}"
+    )
 
     query = query.format(lat=lat, lon=lon, year=year)
 
     r = requests.get(query)
 
     while r.status_code != 200:
-        print(f'Request to DayMet is currently at code: {r.status_code}')
-        print('Waiting 30 seconds before next request.')
+        print(f"Request to DayMet is currently at code: {r.status_code}")
+        print("Waiting 30 seconds before next request.")
         time.sleep(30)
 
-    start_of_year = int(str(year)[2:] + '001')
-    end_of_year = int(str(year)[2:] + '365')
+    start_of_year = int(str(year)[2:] + "001")
+    end_of_year = int(str(year)[2:] + "365")
 
-    index = range(start_of_year, end_of_year+1)
+    index = range(start_of_year, end_of_year + 1)
     field_df = pd.DataFrame(index=index)
 
     weather = pd.read_csv(io.StringIO(r.text), skiprows=7)
     weather.index = field_df.index
 
     # Do SRAD calc to get from W/m2 to MJ / (m2*day) which DSSAT needs
-    watts = weather['srad (W/m^2)']
+    watts = weather["srad (W/m^2)"]
     MJ_hour = watts * 0.0036
-    MJ_day = MJ_hour * (weather['dayl (s)'] / (60 ** 2))
+    MJ_day = MJ_hour * (weather["dayl (s)"] / (60 ** 2))
 
-    field_df['@DATE'] = weather.index
-    field_df['RAIN'] = weather['prcp (mm/day)']
-    field_df['SRAD'] = MJ_day
-    field_df['TMAX'] = weather['tmax (deg c)']
-    field_df['TMIN'] = weather['tmin (deg c)']
+    field_df["@DATE"] = weather.index
+    field_df["RAIN"] = weather["prcp (mm/day)"]
+    field_df["SRAD"] = MJ_day
+    field_df["TMAX"] = weather["tmax (deg c)"]
+    field_df["TMIN"] = weather["tmin (deg c)"]
 
     # Read elevation info off here
-    elev_line = r.text.split('\n')[3]
+    elev_line = r.text.split("\n")[3]
     elev = int(elev_line.split()[1])
-    t_avg = np.mean((field_df['TMAX'] + field_df['TMIN']) / 2)
+    t_avg = np.mean((field_df["TMAX"] + field_df["TMIN"]) / 2)
 
     return field_df, elev, t_avg
 
@@ -189,30 +199,39 @@ def get_nasa_power_data(lon, lat, year):
 
     start_date, end_date = generate_start_and_end_date(year)
 
-    variables = ['T2M_MAX', 'T2M_MIN', 'T2MDEW', 'PRECTOTCORR',
-                 'WS2M', 'RH2M', 'ALLSKY_SFC_SW_DWN']
+    variables = [
+        "T2M_MAX",
+        "T2M_MIN",
+        "T2MDEW",
+        "PRECTOTCORR",
+        "WS2M",
+        "RH2M",
+        "ALLSKY_SFC_SW_DWN",
+    ]
     weather, elevation = get_POWER_singlepoint(
         (lon, lat), start_date, end_date, variables
     )
     # convert to DSSAT weather
     dssat_weather = pd.DataFrame()
-    dssat_weather['@DATE'] = [str(x)[2:] + f'{y:03}' for
-                              x, y in zip(weather['YEAR'], weather['DOY'])]
-    dssat_weather['SRAD'] = weather['ALLSKY_SFC_SW_DWN']
-    dssat_weather['TMAX'] = weather['T2M_MAX']
-    dssat_weather['TMIN'] = weather['T2M_MIN']
-    dssat_weather['DEWP'] = weather['T2MDEW']
+    dssat_weather["@DATE"] = [
+        str(x)[2:] + f"{y:03}" for x, y in zip(weather["YEAR"], weather["DOY"])
+    ]
+    dssat_weather["SRAD"] = weather["ALLSKY_SFC_SW_DWN"]
+    dssat_weather["TMAX"] = weather["T2M_MAX"]
+    dssat_weather["TMIN"] = weather["T2M_MIN"]
+    dssat_weather["DEWP"] = weather["T2MDEW"]
     # Convert m/s to km/d for NASA POWER to DSSAT
-    dssat_weather['WIND'] = (weather['WS2M'] * (86400 / 1000)).astype(int)
-    dssat_weather['RAIN'] = weather['PRECTOTCORR']
-    dssat_weather['RHUM'] = weather['RH2M']
+    dssat_weather["WIND"] = (weather["WS2M"] * (86400 / 1000)).astype(int)
+    dssat_weather["RAIN"] = weather["PRECTOTCORR"]
+    dssat_weather["RHUM"] = weather["RH2M"]
     # Mask any no-value points
     dssat_weather = dssat_weather.replace(-999, -99)
     dssat_weather = dssat_weather.replace(-86313, -99)  # no point wind
 
-    dssat_weather.index = pd.DatetimeIndex([datetime.strptime(x, '%y%j') for x
-                                            in dssat_weather['@DATE']])
-    t_avg = np.mean((dssat_weather['TMAX'] + dssat_weather['TMIN']) / 2)
+    dssat_weather.index = pd.DatetimeIndex(
+        [datetime.strptime(x, "%y%j") for x in dssat_weather["@DATE"]]
+    )
+    t_avg = np.mean((dssat_weather["TMAX"] + dssat_weather["TMIN"]) / 2)
 
     return dssat_weather, elevation, t_avg
 
@@ -225,7 +244,6 @@ def generate_start_and_end_date(year):
         end_date = datetime(year, 12, 31)
 
     return start_date, end_date
-
 
 
 def get_POWER_singlepoint(coordinates, start_date, end_date, parameters):
@@ -256,18 +274,19 @@ def get_POWER_singlepoint(coordinates, start_date, end_date, parameters):
     All values are taken at 2m reference point.
     """
     if len(parameters) > 20:
-        raise RuntimeError('NASA POWER allows only 20 parameters at a time.')
+        raise RuntimeError("NASA POWER allows only 20 parameters at a time.")
 
-    power_url = ('https://power.larc.nasa.gov/api/temporal/daily/point?')
+    power_url = "https://power.larc.nasa.gov/api/temporal/daily/point?"
 
-    payload = {'parameters': ','.join(parameters),
-               'community': 'AG',
-               'latitude': coordinates[1],
-               'longitude': coordinates[0],
-               'start': start_date.strftime('%Y%m%d'),
-               'end': end_date.strftime('%Y%m%d'),
-               'format': 'CSV'
-              }
+    payload = {
+        "parameters": ",".join(parameters),
+        "community": "AG",
+        "latitude": coordinates[1],
+        "longitude": coordinates[0],
+        "start": start_date.strftime("%Y%m%d"),
+        "end": end_date.strftime("%Y%m%d"),
+        "format": "CSV",
+    }
 
     r = requests.get(power_url, params=payload)
 
@@ -277,10 +296,10 @@ def get_POWER_singlepoint(coordinates, start_date, end_date, parameters):
         data = pd.read_csv(csv_io, skiprows=8 + len(parameters))
     except Exception as e:
         print(r.content)
-        raise(e)
+        raise (e)
 
     # get elevation average from header
-    header = str(r.content).split('-END HEADER-')[0]
-    elev = float(header.split('=')[1].split('meters')[0].strip())
+    header = str(r.content).split("-END HEADER-")[0]
+    elev = float(header.split("=")[1].split("meters")[0].strip())
 
     return data, elev

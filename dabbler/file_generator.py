@@ -12,17 +12,20 @@ from . import dabbler_errors
 from . import templates
 from . import dabbler
 
+
 def gen_weather_name(ASD, county, year, gen_names):
     # Generate a weather file name
-    if ASD == 'C':
-        ASD_name = 'CC'
+    if ASD == "C":
+        ASD_name = "CC"
     else:
         ASD_name = ASD
-    weather_name = (f'{ASD_name}{county[0].upper()}'
-                    f'{county[1].upper()}{str(year)[2:]}01.WTH')
+    weather_name = (
+        f"{ASD_name}{county[0].upper()}" f"{county[1].upper()}{str(year)[2:]}01.WTH"
+    )
     if weather_name in gen_names:
-        weather_name = (f'{ASD_name}{county[0].upper()}'
-                        f'{county[2].upper()}{str(year)[2:]}01.WTH')
+        weather_name = (
+            f"{ASD_name}{county[0].upper()}" f"{county[2].upper()}{str(year)[2:]}01.WTH"
+        )
 
     return weather_name
 
@@ -40,70 +43,73 @@ def generate_experiment_file_string(experiment):
         Formatted experiment file string
     """
     if experiment.weather_station_code is None:
-        raise ValueError('Experiment weather station code not set.')
+        raise ValueError("Experiment weather station code not set.")
     if experiment.soil_code is None:
-        raise ValueError('Experiment soil code not set.')
-    if experiment.irrigation is not 'N':
+        raise ValueError("Experiment soil code not set.")
+    if experiment.irrigation is not "N":
         check_valid_irrigation_setup(experiment)
 
     # Read in the experiment template file
-    template = templates.get_template_for_crop(experiment.crop) 
+    template = templates.get_template_for_crop(experiment.crop)
 
-    terms = {'FLD_ID': experiment.experiment_ID[3:],
-             'ID': experiment.experiment_ID,
-             'MDL': experiment.model,
-             'CULT': experiment.cultivar,
-             'SDT': experiment.simulation_start.strftime('%y%j'),
-             'SOIL_IDN': experiment.soil_code,
-             'PLF': experiment.plant_date.strftime('%y%j'),
-             'PLL': experiment.plant_date.strftime('%y%j')\
-             if experiment.plant_end is None\
-             else experiment.plant_end.strftime('%y%j'),
-             'HVF': experiment.harvest_date.strftime('%y%j'),
-             'HVL': experiment.harvest_date.strftime('%y%j')\
-             if experiment.harvest_end is None\
-             else experiment.harvest_end.strftime('%y%j'),
-             'HDT': experiment.harvest_date.strftime('%y%j'),
-             'WST': experiment.weather_station_code,
-             'LOC': experiment.experiment_location_name}
+    terms = {
+        "FLD_ID": experiment.experiment_ID[3:],
+        "ID": experiment.experiment_ID,
+        "MDL": experiment.model,
+        "CULT": experiment.cultivar,
+        "SDT": experiment.simulation_start.strftime("%y%j"),
+        "SOIL_IDN": experiment.soil_code,
+        "PLF": experiment.plant_date.strftime("%y%j"),
+        "PLL": experiment.plant_date.strftime("%y%j")
+        if experiment.plant_end is None
+        else experiment.plant_end.strftime("%y%j"),
+        "HVF": experiment.harvest_date.strftime("%y%j"),
+        "HVL": experiment.harvest_date.strftime("%y%j")
+        if experiment.harvest_end is None
+        else experiment.harvest_end.strftime("%y%j"),
+        "HDT": experiment.harvest_date.strftime("%y%j"),
+        "WST": experiment.weather_station_code,
+        "LOC": experiment.experiment_location_name,
+    }
 
     terms = format_irrigation_terms(terms, experiment)
 
     if experiment.forecast_from_date is not None:
-        terms['FODAT'] = experiment.forecast_from_date  
+        terms["FODAT"] = experiment.forecast_from_date
         # must pad for formatting
         if experiment.num_forecast_years is None:
-            raise ValueError('Must specify Experiment.num_forecast_years.')
-        terms['NYR'] = '{0: >5}'.format(str(experiment.num_forecast_years))
+            raise ValueError("Must specify Experiment.num_forecast_years.")
+        terms["NYR"] = "{0: >5}".format(str(experiment.num_forecast_years))
 
     experiment_file_string = template.format(**terms)
 
-    return experiment_file_string 
+    return experiment_file_string
 
 
 def format_irrigation_terms(terms, experiment):
-    terms['IRIG'] = experiment.irrigation
+    terms["IRIG"] = experiment.irrigation
     management = experiment.irrigation_management
-    terms['IMDEP'] = str(management.irrigation_management_depth).rjust(3)
-    terms['ITHRL'] = str(management.irrigation_threshold_lower).rjust(3)
-    terms['ITHRU'] = str(management.irrigation_threshold_upper).rjust(3)
-    terms['IMETH'] = str(management.irrigation_method_code).rjust(5)
-    terms['IROFF'] = str(management.irrigation_stage_off).rjust(5)
-    terms['IRAMT'] = str(management.irrigation_amount).rjust(3)
-    terms['IREFF'] = str(management.irrigation_efficiency).rjust(5)
+    terms["IMDEP"] = str(management.irrigation_management_depth).rjust(3)
+    terms["ITHRL"] = str(management.irrigation_threshold_lower).rjust(3)
+    terms["ITHRU"] = str(management.irrigation_threshold_upper).rjust(3)
+    terms["IMETH"] = str(management.irrigation_method_code).rjust(5)
+    terms["IROFF"] = str(management.irrigation_stage_off).rjust(5)
+    terms["IRAMT"] = str(management.irrigation_amount).rjust(3)
+    terms["IREFF"] = str(management.irrigation_efficiency).rjust(5)
     return terms
 
 
 def check_valid_irrigation_setup(experiment):
-    if experiment.irrigation == 'R':
-        raise NotImplementedError('Scheduled irrigation not yet implemented.')
-    if experiment.irrigation == 'A':
-        if not isinstance(experiment.irrigation_management,
-                          dabbler.AutomaticIrrigationManagement):
+    if experiment.irrigation == "R":
+        raise NotImplementedError("Scheduled irrigation not yet implemented.")
+    if experiment.irrigation == "A":
+        if not isinstance(
+            experiment.irrigation_management, dabbler.AutomaticIrrigationManagement
+        ):
             raise ValueError(
                 'If irrigation is set to "A", you must pass a'
-                ' dabbler.AutomaticIrrigationManagement object'
-                ' in the Experiment.irrigation_management variable.'
+                " dabbler.AutomaticIrrigationManagement object"
+                " in the Experiment.irrigation_management variable."
             )
 
 
@@ -127,47 +133,54 @@ def generate_weather_file_string(experiment):
             "No weather information set. You must either set Experiment.weather_data"
             " or Experiment.weather_station_code."
         )
-    
+
     # Check for any missing weather columns and fill them with NaN
-    weather_columns = ['@DATE', 'SRAD',  'TMAX',
-                       'TMIN', 'RAIN', 'DEWP', 'WIND',
-                       'PAR', 'EVAP', 'RHUM']
+    weather_columns = [
+        "@DATE",
+        "SRAD",
+        "TMAX",
+        "TMIN",
+        "RAIN",
+        "DEWP",
+        "WIND",
+        "PAR",
+        "EVAP",
+        "RHUM",
+    ]
 
     weather_data = experiment.weather_data.round(1)
 
     # Make wind data a whole int
-    if 'WIND' in weather_data.columns:
-        weather_data['WIND'] = weather_data['WIND'].astype(int)
+    if "WIND" in weather_data.columns:
+        weather_data["WIND"] = weather_data["WIND"].astype(int)
 
     weather_data = fill_missing_columns_with_nan(weather_data, weather_columns)
 
     header_data = collate_weather_header_information(experiment)
 
-    header_string = build_header('weather', header_data)
+    header_string = build_header("weather", header_data)
 
-    dataframe_string = format_weather_dataframe_for_DSSAT(weather_data,
-                                                          weather_columns)
+    dataframe_string = format_weather_dataframe_for_DSSAT(weather_data, weather_columns)
 
-    full_string = header_string + '\n' + dataframe_string
+    full_string = header_string + "\n" + dataframe_string
 
     return full_string
 
 
 def format_weather_dataframe_for_DSSAT(dataframe, columns):
-    # Set proper format justifications for columns 
-    justify = ['left'] + ['right'] * 9
+    # Set proper format justifications for columns
+    justify = ["left"] + ["right"] * 9
     # Have to split and strip to get formatting exactly right for DSSAT
-    strings = dataframe.to_string(index=False,
-                                  columns=columns,
-                                  na_rep='   ',
-                                  justify=justify).split('\n')
+    strings = dataframe.to_string(
+        index=False, columns=columns, na_rep="   ", justify=justify
+    ).split("\n")
     strings = [x.strip() for x in strings]
-    string = '\n'.join(strings)
+    string = "\n".join(strings)
 
     # replace -99.0 values that are a result of formatting with DSSAT
     # friendly -99 values
-    string = string.replace('-99.0', '  -99')
-    string = string.replace('-99.00', '   -99')
+    string = string.replace("-99.0", "  -99")
+    string = string.replace("-99.00", "   -99")
 
     return string
 
@@ -198,50 +211,57 @@ def generate_weather(filename, savepath, weather_data, header_data):
     str
         Absolute path to newly generated file.
     """
-    
+
     path = Path(savepath, filename)
 
     # Check for any missing weather columns and fill them with NaN
-    weather_columns = ['@DATE', 'SRAD',  'TMAX',
-                       'TMIN', 'RAIN', 'DEWP', 'WIND',
-                       'PAR', 'EVAP', 'RHUM']
-
+    weather_columns = [
+        "@DATE",
+        "SRAD",
+        "TMAX",
+        "TMIN",
+        "RAIN",
+        "DEWP",
+        "WIND",
+        "PAR",
+        "EVAP",
+        "RHUM",
+    ]
 
     weather_data = weather_data.round(1)
 
     # Make wind data a whole int
-    if 'WIND' in weather_data.columns:
-        weather_data['WIND'] = weather_data['WIND'].astype(int)
+    if "WIND" in weather_data.columns:
+        weather_data["WIND"] = weather_data["WIND"].astype(int)
 
     for col in weather_columns:
         if col not in weather_data.columns:
             weather_data[col] = np.nan
 
-    # Set proper format justifications for solumns 
-    justify = ['left'] + ['right'] * 9
+    # Set proper format justifications for solumns
+    justify = ["left"] + ["right"] * 9
 
     if path.exists():
-        warnings.warn('Found existing weather file in specified location:'
-                      f' {path}',
-                       RuntimeWarning)
+        warnings.warn(
+            "Found existing weather file in specified location:" f" {path}",
+            RuntimeWarning,
+        )
 
-
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         # Write the header to file
-        build_header(f, 'weather', header_data)
+        build_header(f, "weather", header_data)
 
         # Have to split and strip to get formatting exactly right for DSSAT
-        strings = weather_data.to_string(index=False,
-                                       columns=weather_columns,
-                                       na_rep='   ',
-                                       justify=justify).split('\n')
+        strings = weather_data.to_string(
+            index=False, columns=weather_columns, na_rep="   ", justify=justify
+        ).split("\n")
         strings = [x.strip() for x in strings]
-        string = '\n'.join(strings)
+        string = "\n".join(strings)
 
         # replace -99.0 values that are a result of formatting with DSSAT
         # friendly -99 values
-        string = string.replace('-99.0', '  -99')
-        string = string.replace('-99.00', '   -99')
+        string = string.replace("-99.0", "  -99")
+        string = string.replace("-99.00", "   -99")
 
         f.write(string)
         f.close()
@@ -251,32 +271,28 @@ def generate_weather(filename, savepath, weather_data, header_data):
 
 def collate_weather_header_information(experiment):
     header_data = {
-        'INSI': '   ',
-        'LAT': experiment.coordinates_latitude,
-        'LONG': experiment.coordinates_longitude,
-        'ELEV': -99,
-        'TAV': -99,
-        'AMP': -99,
-        'REFHT': -99,
-        'WNDHT': -99,
-        'location': experiment.experiment_location_name
+        "INSI": "   ",
+        "LAT": experiment.coordinates_latitude,
+        "LONG": experiment.coordinates_longitude,
+        "ELEV": -99,
+        "TAV": -99,
+        "AMP": -99,
+        "REFHT": -99,
+        "WNDHT": -99,
+        "location": experiment.experiment_location_name,
     }
     if experiment.elevation is not None:
-        header_data['ELEV'] = experiment.elevation
+        header_data["ELEV"] = experiment.elevation
     if experiment.average_soil_temperature is not None:
-        header_data['TAV'] = experiment.average_soil_temperature
+        header_data["TAV"] = experiment.average_soil_temperature
     if experiment.average_soil_temp_amplitude is not None:
-        header_data['AMP'] = experiment.average_soil_temp_amplitude
+        header_data["AMP"] = experiment.average_soil_temp_amplitude
     if experiment.weather_measurements_refernce_height is not None:
-        header_data['REFHT'] = experiment.weather_measurements_refernce_height
+        header_data["REFHT"] = experiment.weather_measurements_refernce_height
     if experiment.wind_measurements_refernce_height is not None:
-        header_data['WNDHT'] = experiment.wind_measurements_refernce_height
+        header_data["WNDHT"] = experiment.wind_measurements_refernce_height
 
     return header_data
-
-
-
-
 
 
 def build_header(filetype, data):
@@ -325,19 +341,19 @@ def generate_batchfile_string(experiment, EXP_fifo):
     DSSAT file.
     """
 
-    header_data = {'CROP': experiment.crop}
+    header_data = {"CROP": experiment.crop}
 
     # Format line string
-    line = f'{str(EXP_fifo):<98}1      1      0      0      0'
+    line = f"{str(EXP_fifo):<98}1      1      0      0      0"
 
-    header_string = build_header('batch', header_data)
+    header_string = build_header("batch", header_data)
 
-    batch_string = header_string + '\n' + line
+    batch_string = header_string + "\n" + line
 
     return batch_string
 
 
-def generate_batchfile(experiment_filepath, savepath, crop_type, exp_number=''):
+def generate_batchfile(experiment_filepath, savepath, crop_type, exp_number=""):
     """Generate a DSSAT batch file.
 
     Parameters
@@ -366,18 +382,18 @@ def generate_batchfile(experiment_filepath, savepath, crop_type, exp_number=''):
     DSSAT file.
     """
 
-    if exp_number == '':
-        exp_number = 'DSSAT'
-    path = Path(savepath, f'{exp_number}.v47')
+    if exp_number == "":
+        exp_number = "DSSAT"
+    path = Path(savepath, f"{exp_number}.v47")
 
-    header_data = {'CROP': crop_type}
+    header_data = {"CROP": crop_type}
 
     # Format line string
-    line = f'{experiment_filepath:<98}1      1      0      0      0'
+    line = f"{experiment_filepath:<98}1      1      0      0      0"
 
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         # Write the header to file
-        build_header(f, 'batch', header_data)
+        build_header(f, "batch", header_data)
 
         f.write(line)
 
@@ -386,25 +402,26 @@ def generate_batchfile(experiment_filepath, savepath, crop_type, exp_number=''):
     return str(path.name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Read in from a DSSAT weather file for testing
-    wth_file = 'UFGA8201.WTH'
+    wth_file = "UFGA8201.WTH"
 
-    wth = pd.read_csv(wth_file, skiprows=4, sep='\s+')
+    wth = pd.read_csv(wth_file, skiprows=4, sep="\s+")
 
-    header_data = {'INSI' : 'UFGA',
-                   'LAT' : 29.630,
-                   'LONG' : -82.370,
-                   'ELEV' : 10,
-                   'TAV' : 20.9,
-                   'AMP' : 13.0,
-                   'REFHT' : 2.00,
-                   'WNDHT' : 3.00,
-                   'location': 'Test'}
+    header_data = {
+        "INSI": "UFGA",
+        "LAT": 29.630,
+        "LONG": -82.370,
+        "ELEV": 10,
+        "TAV": 20.9,
+        "AMP": 13.0,
+        "REFHT": 2.00,
+        "WNDHT": 3.00,
+        "location": "Test",
+    }
 
-
-    generate_weather('test.WTH', '', wth, header_data)
-    generate_batchfile('/home/george/Documents/code/dabbler/EXP_template.MZX', 'run', 'MAIZE',
-                       '1234')
-
+    generate_weather("test.WTH", "", wth, header_data)
+    generate_batchfile(
+        "/home/george/Documents/code/dabbler/EXP_template.MZX", "run", "MAIZE", "1234"
+    )

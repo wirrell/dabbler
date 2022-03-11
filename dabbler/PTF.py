@@ -39,13 +39,20 @@ def saturated_upper_limit(sand_w, clay_w, soc_w):
 
     # First we calculate theta_s_33 which is the difference between theta_s
     # - theta_33
-    theta_s_33_t = 0.278 * sand_w + 0.034 * clay_w + 0.022 * om_w \
-            - 0.018 * (sand_w * om_w) - 0.027 * (clay_w * om_w) - \
-            0.584 * (sand_w * clay_w) + 0.078
+    theta_s_33_t = (
+        0.278 * sand_w
+        + 0.034 * clay_w
+        + 0.022 * om_w
+        - 0.018 * (sand_w * om_w)
+        - 0.027 * (clay_w * om_w)
+        - 0.584 * (sand_w * clay_w)
+        + 0.078
+    )
     theta_s_33 = theta_s_33_t + (0.6360 * theta_s_33_t - 0.107)
 
-    theta_s = drained_upper_limit(sand_w, clay_w, soc_w) + theta_s_33 \
-            - 0.097 * sand_w + 0.043
+    theta_s = (
+        drained_upper_limit(sand_w, clay_w, soc_w) + theta_s_33 - 0.097 * sand_w + 0.043
+    )
 
     return theta_s
 
@@ -78,9 +85,15 @@ def drained_upper_limit(sand_w, clay_w, soc_w):
     # Convert soil organic carbon to soil organic matter
     om_w = soc_w * 2
 
-    theta_33t = -0.251 * sand_w + 0.195 * clay_w + 0.011 * om_w \
-            + 0.006 * (sand_w * om_w) - 0.027 * (clay_w * om_w) \
-            + 0.452 * (sand_w * clay_w) + 0.299
+    theta_33t = (
+        -0.251 * sand_w
+        + 0.195 * clay_w
+        + 0.011 * om_w
+        + 0.006 * (sand_w * om_w)
+        - 0.027 * (clay_w * om_w)
+        + 0.452 * (sand_w * clay_w)
+        + 0.299
+    )
 
     theta_33 = theta_33t + (1.283 * (theta_33t ** 2) - (0.374 * theta_33t) - 0.015)
 
@@ -115,9 +128,15 @@ def wilting_point(sand_w, clay_w, soc_w):
     # Convert soil organic carbon to soil organic matter
     om_w = soc_w * 2
 
-    theta_1500t = -0.024 * sand_w + 0.487 * clay_w + 0.006 + \
-            0.005 * (sand_w * om_w) - 0.013 * (clay_w * om_w) + \
-            0.068 * (sand_w * clay_w) + 0.031
+    theta_1500t = (
+        -0.024 * sand_w
+        + 0.487 * clay_w
+        + 0.006 * om_w
+        + 0.005 * (sand_w * om_w)
+        - 0.013 * (clay_w * om_w)
+        + 0.068 * (sand_w * clay_w)
+        + 0.031
+    )
     theta_1500 = theta_1500t + (0.14 * theta_1500t - 0.02)
 
     return theta_1500
@@ -133,7 +152,7 @@ def slope_of_log_tension_moisture_curve(theta_33, theta_1500):
     if isinstance(theta_1500, pd.Series):
         theta_1500 = theta_1500.astype(float)
 
-    lam = 1 / ((np.log(1500) - np.log(33)) / (np.log(theta_33) - np.log(theta_1500)))
+    lam = 1 / (((np.log(1500) - np.log(33)) / (np.log(theta_33) - np.log(theta_1500))))
 
     return lam
 

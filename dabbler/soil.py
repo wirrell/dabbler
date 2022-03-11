@@ -26,27 +26,31 @@ from rasterio.plot import show
 from rasterio.io import MemoryFile
 from soiltexture import getTexture
 
-ROI_CRS = 'EPSG:4326'
+ROI_CRS = "EPSG:4326"
 
-class SoilGenerator():
+
+class SoilGenerator:
     """
     Produces soil tables for DSSAT for given WGS84 coordinates.
     """
+
     # NOTE: we include sand in initial extract for use in PTFs
-    soilgrids_properties = ['bdod', 'soc', 'clay', 'silt', 'phh2o', 'cec', 'sand']
-    soil_grids_dssat_labels = ['SBDM', 'SLOC', 'SLCL', 'SLSI', 'SLHW', 'SCEC', 'SAND']
+    soilgrids_properties = ["bdod", "soc", "clay", "silt", "phh2o", "cec", "sand"]
+    soil_grids_dssat_labels = ["SBDM", "SLOC", "SLCL", "SLSI", "SLHW", "SCEC", "SAND"]
     # define layer names for a SoilGrids service and their equivalent depths
-    soilgrid_layers = {'{soil_property}_0-5cm_mean': 5,
-                       '{soil_property}_5-15cm_mean': 15,
-                       '{soil_property}_15-30cm_mean': 30,
-                       '{soil_property}_30-60cm_mean': 60,
-                       '{soil_property}_60-100cm_mean': 100,
-                       '{soil_property}_100-200cm_mean': 200}
+    soilgrid_layers = {
+        "{soil_property}_0-5cm_mean": 5,
+        "{soil_property}_5-15cm_mean": 15,
+        "{soil_property}_15-30cm_mean": 30,
+        "{soil_property}_30-60cm_mean": 60,
+        "{soil_property}_60-100cm_mean": 100,
+        "{soil_property}_100-200cm_mean": 200,
+    }
 
     def __init__(
         self,
-        soilgridsdata='/home/george/Documents/data/soil/SoilGrids/global',
-        HC27data=Path(__file__).parent / "../data/HC27"
+        soilgridsdata="/home/george/Documents/data/soil/SoilGrids/global",
+        HC27data=Path(__file__).parent / "../data/HC27",
     ):
         self.soilgridsdata = Path(soilgridsdata)
         self.HC27data = Path(HC27data)
@@ -63,18 +67,19 @@ class SoilGenerator():
                 self.soillayersrefs[layer] = self.load_soillayer(soil_property, layer)
 
         self.HC27_soils = {}
-        with open(self.HC27data / 'HC.SOL', 'r') as HC_f:
+        with open(self.HC27data / "HC.SOL", "r") as HC_f:
             HC_string = HC_f.read()
 
-        HC27_tables = [table for table in HC_string.split('*') if table.startswith('H')]
+        HC27_tables = [table for table in HC_string.split("*") if table.startswith("H")]
 
         def interpolate_HC27(depth_table):
             # Interpolate HC27 table to methodology paper soil depths.
             # See Table 5 in https://doi.org/10.1016/j.envsoft.2019.05.012
-            del depth_table['SLMH']  # remove master horizon so we can mulitply
+            del depth_table["SLMH"]  # remove master horizon so we can mulitply
             depth_table.loc[5, :] = depth_table.loc[10, :]
-            depth_table.loc[15, :] = 0.5 * depth_table.loc[10, :] + \
-                    0.5 * depth_table.loc[30, :]
+            depth_table.loc[15, :] = (
+                0.5 * depth_table.loc[10, :] + 0.5 * depth_table.loc[30, :]
+            )
             depth_table.loc[100, :] = 0
             depth_table.loc[200, :] = 0
             if 90 in depth_table.index:
@@ -94,21 +99,17 @@ class SoilGenerator():
             depth_table = interpolate_HC27(depth_table)
             self.HC27_soils[code] = (depth_table, properties)
 
-
     def _format_HC27_table(self, table):
         """Format HC27 table by loading it into pandas and reading info."""
-        code = table.split(' ')[0]
-        sections =  table.split('@')
-        properties = pd.read_csv(io.StringIO(sections[2]), sep='\s+')
-        depth_table = pd.read_csv(io.StringIO(sections[3]), sep='\s+',
-                                  index_col='SLB')
+        code = table.split(" ")[0]
+        sections = table.split("@")
+        properties = pd.read_csv(io.StringIO(sections[2]), sep="\s+")
+        depth_table = pd.read_csv(io.StringIO(sections[3]), sep="\s+", index_col="SLB")
         return code, depth_table, properties
 
     def load_soillayer(self, soil_property, layer):
         """Load in rasterio dataset reference object for soil property layer."""
-        return rasterio.open(
-            self.soilgridsdata / soil_property / (layer + '.tif')
-        )
+        return rasterio.open(self.soilgridsdata / soil_property / (layer + ".tif"))
 
     def build_soils(self, ROIs):
         """
@@ -116,7 +117,7 @@ class SoilGenerator():
         Parameters
         ----------
         ROIs : dict of shapely.geometry.Polygon in WGS84 coodinates
-                keyed by 10 character reference codes
+                keyed by 10 character reference codes, format is (LAT, LON)
         """
         # Reproject ROIs from WGS84 to SoilGrids projection:
         #   Interupted Goode Homolosine
@@ -131,8 +132,7 @@ class SoilGenerator():
         # get bulk density, soil organic carbon conc, clay, silt, pH in water,
         # carbon exchange capacity from SoilGrids
         for soil_property, key in zip(
-            self.soilgrids_properties,
-            self.soil_grids_dssat_labels
+            self.soilgrids_properties, self.soil_grids_dssat_labels
         ):
             self._add_depth_information(soil_property, key, ROIs, ROI_tables)
 
@@ -148,15 +148,16 @@ class SoilGenerator():
         ROI_properties, HC_codes = self._assign_HC27_properties(ROI_tables)
 
         # Build Soil objects
-        soils = []
+        soils = {}
         for ROI_key in ROIs:
-            soils.append(Soil(ROI_tables[ROI_key],
-                              ROI_properties[ROI_key],
-                              HC_codes[ROI_key],
-                              ROIs_WGS84[ROI_key],
-                              ROI_key))
+            soils[ROI_key] = Soil(
+                ROI_tables[ROI_key],
+                ROI_properties[ROI_key],
+                HC_codes[ROI_key],
+                ROIs_WGS84[ROI_key],
+                ROI_key,
+            )
         return soils
-
 
     def generate_soil_file(self, ROIs, loc_name, filename, append=False):
         """Generate a DSSAT soil file for a list of ROIs.
@@ -177,41 +178,39 @@ class SoilGenerator():
         str
             Absolute path to newly generated file.
         """
-        if len(filename.split('.')[0]) > 2:
-            raise ValueError(f'Filename {filename} must be of format XX.SOL')
+        if len(filename.split(".")[0]) > 2:
+            raise ValueError(f"Filename {filename} must be of format XX.SOL")
 
         for ROI_key in ROIs:
             if len(ROI_key) != 10:
-                raise ValueError('Keys to ROI must fit DSSAT format: '
-                                 'XXNNNNNNNN')
+                raise ValueError("Keys to ROI must fit DSSAT format: " "XXNNNNNNNN")
             ROI_stub = ROI_key[:2]
-            if ROI_stub != filename.split('.')[0]:
-                raise ValueError(f'First two letters of ROI key {ROI_key} do not match'
-                                 f' the filename {filename}. They must match as DSSAT '
-                                 'uses the XX in XXNNNNNNNN key to search for the XX.'
-                                 'SOL file.')
+            if ROI_stub != filename.split(".")[0]:
+                raise ValueError(
+                    f"First two letters of ROI key {ROI_key} do not match"
+                    f" the filename {filename}. They must match as DSSAT "
+                    "uses the XX in XXNNNNNNNN key to search for the XX."
+                    "SOL file."
+                )
 
         soils = self.build_soils(ROIs)
 
-        self.write_to_file(soils,
-                           Path(loc_name) / filename,
-                           append)
+        self.write_to_file(soils, Path(loc_name) / filename, append)
 
         return Path(loc_name) / filename
-
 
     def write_to_file(self, soils, filename, append):
         """Write soil objects to DSSAT soil file."""
 
         # Set write mode
-        write_mode = 'w'
-        if append: write_mode = 'a'
+        write_mode = "w"
+        if append:
+            write_mode = "a"
 
-        full_string = '\n'.join([str(soil) for soil in soils])
+        full_string = "\n".join([str(soil) for soil in soils])
 
         with open(filename, write_mode) as f:
             f.write(full_string)
-
 
     def _calculate_HC27_soils(self, ROI_tables):
         """Find HC27 generic soils closest to target soils based on HarvestChoice
@@ -222,43 +221,45 @@ class SoilGenerator():
         # See paper in docstring for HC27 decision tree
         for ROI, depth_table in ROI_tables.items():
             HC_code = 1
-            soc = depth_table.loc[5, 'SLOC']
-            sand = depth_table.loc[5, 'SAND']
-            clay = depth_table.loc[5, 'SLCL']
-            texture = getTexture(sand, clay, 'USDA').split(' ')[-1]
+            soc = depth_table.loc[5, "SLOC"]
+            sand = depth_table.loc[5, "SAND"]
+            clay = depth_table.loc[5, "SLCL"]
+            texture = getTexture(sand, clay, "USDA").split(" ")[-1]
             # available water storage capacity of 1m depth of the soil
-            awc = (1000 * (depth_table.loc[:100, 'SDUL']
-                          - depth_table.loc[:100, 'SLLL'])).mean()
+            awc = (
+                1000 * (depth_table.loc[:100, "SDUL"] - depth_table.loc[:100, "SLLL"])
+            ).mean()
 
             # Assign depth based on awc
-            if awc <= 75: HC_code = HC_code + 2
+            if awc <= 75:
+                HC_code = HC_code + 2
             elif 75 < awc <= 100:
-                if texture == 'sand':
+                if texture == "sand":
                     HC_code = HC_code + 1
                 else:
                     HC_code = HC_code + 2
             elif 100 < awc <= 125:
-                if texture == 'clay':
+                if texture == "clay":
                     HC_code = HC_code + 2
                 else:
                     HC_code = HC_code + 1
             elif 125 < awc <= 150:
-                if texture == 'sand':
+                if texture == "sand":
                     pass
                 else:
                     HC_code = HC_code + 1
 
             # Now compute HC27 code
-            if texture == 'loam':
+            if texture == "loam":
                 HC_code = HC_code + 9
-            elif texture == 'sand':
+            elif texture == "sand":
                 HC_code = HC_code + 18
             if 0.7 <= soc < 1.2:
                 HC_code = HC_code + 3
             elif soc < 0.7:
                 HC_code = HC_code + 6
 
-            HC_codes[ROI] = f'HC_GEN00{HC_code}'
+            HC_codes[ROI] = f"HC_GEN00{HC_code}"
 
         return HC_codes
 
@@ -268,14 +269,16 @@ class SoilGenerator():
 
         soil_properties = {}
 
-        for (ROI, HC_code), (ROI, depth_table) in zip(HC_codes.items(), ROI_tables.items()):
+        for (ROI, HC_code), (ROI, depth_table) in zip(
+            HC_codes.items(), ROI_tables.items()
+        ):
             HC_depth_table, HC_properties = self.HC27_soils[HC_code]
             # Do properties
             properties = HC_properties.copy()
             soil_properties[ROI] = properties
             # Do soil root growth factor and nitrogen concentration
-            depth_table['SRGF'] = HC_depth_table.loc[depth_table.index, 'SRGF']
-            depth_table['SLNI'] = HC_depth_table.loc[depth_table.index, 'SLNI']
+            depth_table["SRGF"] = HC_depth_table.loc[depth_table.index, "SRGF"]
+            depth_table["SLNI"] = HC_depth_table.loc[depth_table.index, "SLNI"]
 
         return soil_properties, HC_codes
 
@@ -291,46 +294,32 @@ class SoilGenerator():
             # see: https://www.isric.org/explore/soilgrids/faq-soilgrids
             # NOTE: PTFs need them as fractions, see PTF docstring methodology
             # paper.
-            sand_w = depth_table['SAND'] / (10 * 100)
-            clay_w = depth_table['SLCL'] / (10 * 100)
-            soc_w = depth_table['SLOC'] / (10 * 100)
-
+            sand_w = depth_table["SAND"] / (10 * 100)
+            clay_w = depth_table["SLCL"] / (10 * 100)
+            soc_w = depth_table["SLOC"] / (10 * 100)
 
             # do drained upper limit
-            depth_table.loc[:, 'SDUL'] = PTF.drained_upper_limit(
-                sand_w,
-                clay_w,
-                soc_w
-            )
+            depth_table.loc[:, "SDUL"] = PTF.drained_upper_limit(sand_w, clay_w, soc_w)
             # do wilting point
-            depth_table.loc[:, 'SLLL'] = PTF.wilting_point(
-                sand_w,
-                clay_w,
-                soc_w
-            )
+            depth_table.loc[:, "SLLL"] = PTF.wilting_point(sand_w, clay_w, soc_w)
             # do saturated upper limit
-            depth_table.loc[:, 'SSAT'] = PTF.saturated_upper_limit(
-                sand_w,
-                clay_w,
-                soc_w
+            depth_table.loc[:, "SSAT"] = PTF.saturated_upper_limit(
+                sand_w, clay_w, soc_w
             )
             # do saturated hydraulic conductivity
-            depth_table.loc[:, 'SSKS'] = PTF.saturated_hydraulic_conductivity(
-                sand_w,
-                clay_w,
-                soc_w
+            depth_table.loc[:, "SSKS"] = PTF.saturated_hydraulic_conductivity(
+                sand_w, clay_w, soc_w
             )
 
     def _reproject_ROIs(self, ROIs):
         """Reproject dict of ROI polygons to SoilGrids data projection."""
         # Get soil layer CRS
-        SoilGrids_crs = pyproj.crs.CRS(
-            list(self.soillayersrefs.values())[0].crs
-        )
-        WGS84 = pyproj.crs.CRS('EPSG:4326')
+        SoilGrids_crs = pyproj.crs.CRS(list(self.soillayersrefs.values())[0].crs)
+        WGS84 = pyproj.crs.CRS("EPSG:4326")
 
-        transformer = pyproj.Transformer.from_crs(WGS84, SoilGrids_crs,
-                                                  always_xy=True).transform
+        transformer = pyproj.Transformer.from_crs(
+            WGS84, SoilGrids_crs, always_xy=True
+        ).transform
 
         ROIs_transform = ROIs.copy()
 
@@ -340,7 +329,7 @@ class SoilGenerator():
         return ROIs_transform
 
     def _add_depth_information(self, soil_property, key, ROIs, ROI_tables):
-        """Get soil depth information and add to DF.""" 
+        """Get soil depth information and add to DF."""
 
         # Go through all layers for property and extract data
         for layer_name, depth in self.soilgrid_layers.items():
@@ -360,14 +349,13 @@ class SoilGenerator():
                 depth_table = ROI_tables[ROI_key]
                 depth_table.loc[depth, key] = layer_data_mean
 
-
     def _soilgrid_to_DSSAT_conversion(self, depth_table):
         """Convert from soil grid values to DSSAT required values:
             ref:https://www.isric.org/explore/soilgrids/faq-soilgrids
         """
 
         # NOTE: here we assume the particle density of all soil particles is
-        # similar and around 2.65 g/cm^3 
+        # similar and around 2.65 g/cm^3
         # see: https://www.sciencedirect.com/topics/engineering/particle-density
 
         # NOTE: we assume soil organic compound density is 1.3 g/cm3
@@ -377,90 +365,111 @@ class SoilGenerator():
 
         # Convert bulk density
         # Comes in cg/cm^3, we need in grams per cm^3
-        depth_table['SBDM'] = depth_table['SBDM'] / 100
+        depth_table["SBDM"] = depth_table["SBDM"] / 100
 
         # Calculate weight / weight to cm^3 / cm^3 conversion
-        conversion = depth_table['SBDM'] / 2.65
+        conversion = depth_table["SBDM"] / 2.65
 
         # convert clay and silt
-        depth_table['SLCL'] = (depth_table['SLCL'] / 1000) * conversion * 100
-        depth_table['SLSI'] = (depth_table['SLSI'] / 1000) * conversion * 100
+        depth_table["SLCL"] = (depth_table["SLCL"] / 1000) * conversion * 100
+        depth_table["SLSI"] = (depth_table["SLSI"] / 1000) * conversion * 100
 
         # NOTE: do sand as we need it for PTF calculations
-        depth_table['SAND'] = (depth_table['SAND'] / 1000) * conversion * 100
+        depth_table["SAND"] = (depth_table["SAND"] / 1000) * conversion * 100
 
         # soil organic compound concentration, convert using soil bulk density
         # and above value for SOC particle density. value comes in dg/kg
-        dg_kg = depth_table['SLOC']
+        dg_kg = depth_table["SLOC"]
         g_g = dg_kg / 10000
-        depth_table['SLOC'] = g_g * (depth_table['SBDM'] / 1.3) * 100
+        depth_table["SLOC"] = g_g * (depth_table["SBDM"] / 1.3) * 100
 
         # Do soil pH
         # Comes in pH * 10, we need in pH
-        depth_table['SLHW'] = depth_table['SLHW'] / 10
+        depth_table["SLHW"] = depth_table["SLHW"] / 10
 
         # do cation exchange capacity
         # Comes in mmol / kg, need in cmol / kg
-        depth_table['SCEC'] = depth_table['SCEC'] / 10
+        depth_table["SCEC"] = depth_table["SCEC"] / 10
 
+        # PTFs calculate sat hydr cond in mm h-1, we need in cm h-1
+        depth_table['SSKS'] = depth_table['SSKS'] / 10
 
     def _form_soil_DFs(self):
         """Form a pandas dataframe to hold soil data."""
 
-        soil_depth_cols = ['SLB', 'SLMH', 'SLLL', 'SDUL', 'SSAT', 'SRGF',
-                           'SSKS', 'SBDM', 'SLOC', 'SLCL', 'SLSI', 'SLCF',
-                           'SLNI', 'SLHW', 'SLHB', 'SCEC', 'SADC']    
+        soil_depth_cols = [
+            "SLB",
+            "SLMH",
+            "SLLL",
+            "SDUL",
+            "SSAT",
+            "SRGF",
+            "SSKS",
+            "SBDM",
+            "SLOC",
+            "SLCL",
+            "SLSI",
+            "SLCF",
+            "SLNI",
+            "SLHW",
+            "SLHB",
+            "SCEC",
+            "SADC",
+        ]
 
         # format soil depth dataframe
         soil_depth = pd.DataFrame(columns=soil_depth_cols)
-        soil_depth['SLB'] = [5, 15, 30, 60, 100, 200]
-        soil_depth.index = soil_depth['SLB']
+        soil_depth["SLB"] = [5, 15, 30, 60, 100, 200]
+        soil_depth.index = soil_depth["SLB"]
 
         # Set soil master horizon per https://doi.org/10.1016/j.envsoft.2019.05.012
         # NOTE: padding values here so they print easily in DSSAT formatting
-        soil_depth['SLMH'] = ['A   ', 'A   ', 'AB  ', 'BA  ', 'B   ', 'BC  ']
+        soil_depth["SLMH"] = ["A   ", "A   ", "AB  ", "BA  ", "B   ", "BC  "]
 
         # following paper cited in docstring, SLCF and SLHB are both set to -99
-        soil_depth['SLCF'] = -99
-        soil_depth['SLHB'] = -99
-        soil_depth['SADC'] = -99  # SADC not mentioned but it is also -99 in files
+        soil_depth["SLCF"] = -99
+        soil_depth["SLHB"] = -99
+        soil_depth["SADC"] = -99  # SADC not mentioned but it is also -99 in files
 
         return soil_depth
 
 
 class Soil:
     """Data structure that holds all require soil information for DSSAT."""
+
     # set DP rounding number
-    column_rounds = {'SLLL': 3,
-                     'SDUL': 3,
-                     'SSAT': 3,
-                     'SRGF': 2,
-                     'SSKS': 2,
-                     'SBDM': 2,
-                     'SLOC': 2,
-                     'SLCL': 2,
-                     'SLSI': 2,
-                     'SLCF': 1,
-                     'SLNI': 2,
-                     'SLHW': 2,
-                     'SLHB': 1,
-                     'SCEC': 1,
-                     'SADC': 1}
+    column_rounds = {
+        "SLLL": 3,
+        "SDUL": 3,
+        "SSAT": 3,
+        "SRGF": 2,
+        "SSKS": 2,
+        "SBDM": 2,
+        "SLOC": 2,
+        "SLCL": 2,
+        "SLSI": 2,
+        "SLCF": 1,
+        "SLNI": 2,
+        "SLHW": 2,
+        "SLHB": 1,
+        "SCEC": 1,
+        "SADC": 1,
+    }
 
-
-    def __init__(self,
-                 depth_table : pd.DataFrame,
-                 properties : pd.DataFrame,
-                 HC_code : str,
-                 ROI_WGS84 : shapely.geometry.Polygon,
-                 ROI_code : str):
+    def __init__(
+        self,
+        depth_table: pd.DataFrame,
+        properties: pd.DataFrame,
+        HC_code: str,
+        ROI_WGS84: shapely.geometry.Polygon,
+        ROI_code: str,
+    ):
         self.depth_table = depth_table
         self.properties = properties
         self.HC_code = HC_code
         self.ROI_WGS84 = ROI_WGS84
         self.ROI_code = ROI_code
-        self.coordinates = (ROI_WGS84.centroid.xy[0][0],
-                            ROI_WGS84.centroid.xy[1][0])
+        self.coordinates = (ROI_WGS84.centroid.xy[0][0], ROI_WGS84.centroid.xy[1][0])
         self._build_string_repr()
 
     def __repr__(self):
@@ -468,55 +477,54 @@ class Soil:
 
     def _build_string_repr(self):
 
-        full_string = ''
+        full_string = ""
 
         depth_table = self.depth_table
         properties = self.properties
 
         # Remove SAND, we no longer need it
-        del depth_table['SAND']
+        if 'SAND' in depth_table:
+            del depth_table["SAND"]
 
         # Round values
         for col in self.column_rounds:
-            depth_table[col] = np.round(depth_table[col].astype(float), self.column_rounds[col])
+            depth_table[col] = np.round(
+                depth_table[col].astype(float), self.column_rounds[col]
+            )
 
         # Pad master horizon values
 
         # First, build header
         LON, LAT = self.coordinates
-        header = get_header('soil').format(
+        header = get_header("soil").format(
             ROI_code=self.ROI_code,
             LONG=LON,
             LAT=LAT,
             family=self.HC_code,
-            depth=depth_table.index[-1]
+            depth=depth_table.index[-1],
         )
 
         # Next build properties single row table
-        properties = properties.to_string(index=False,
-                                          na_rep='   ').split('\n')
+        properties = properties.to_string(index=False, na_rep="   ").split("\n")
         # pad the start of each line
-        properties[0] = '@ ' + properties[0]
-        properties[1] = '  ' + properties[1]
-        properties_string = '\n'.join(properties)
+        properties[0] = "@ " + properties[0]
+        properties[1] = "  " + properties[1]
+        properties_string = "\n".join(properties)
 
         # Now build depth table string
         # Have to split strip to get formatting exactly right for DSSAT
-        strings = depth_table.to_string(index=False,
-                                        na_rep='   ').split('\n')
+        strings = depth_table.to_string(index=False, na_rep="   ").split("\n")
         # Pad the start of each line for DSSAT formatting
-        formatted_strings = ['@ ' + strings[0]] + [
-            '  ' + x for x in strings[1:]
-        ]
-        
-        depth_table_string = '\n'.join(formatted_strings)
+        formatted_strings = ["@ " + strings[0]] + ["  " + x for x in strings[1:]]
+
+        depth_table_string = "\n".join(formatted_strings)
 
         # Write formatted strings to file
         full_string = full_string + header
-        full_string = full_string + '\n'
+        full_string = full_string + "\n"
         full_string = full_string + properties_string
-        full_string = full_string + '\n'
+        full_string = full_string + "\n"
         full_string = full_string + depth_table_string
-        full_string = full_string + '\n\n'
+        full_string = full_string + "\n\n"
 
         self._rep_string = full_string
