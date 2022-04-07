@@ -386,8 +386,6 @@ class Results:
         # Set results tables as attributes of object
         for result in results:
             setattr(self, result.split(".")[0], results[result])
-        # read INFO.OUT file
-        self._load_INFO(self.in_out_location / "INFO.OUT")
         # read Overview file
         self._set_overview(self.in_out_location / "OVERVIEW.OUT")
 
@@ -439,6 +437,8 @@ class Results:
                 table_string = fifo.read().split("Soil ID")[1]
         except FileNotFoundError:
             return  # No info file generated
+        # Remove file at the end otherwise DSSAT will stack results
+        info_loc.unlink()
         table = pd.read_csv(
             StringIO(table_string), sep="\s+", skiprows=6, nrows=10  # noqa
         )
@@ -446,8 +446,6 @@ class Results:
         table = table.drop(table.index[0])
         table.index = [int(x) for x in table.index.levels[0][:-1]]
         self.SoilInfo = table
-        # Remove file at the end otherwise DSSAT will stack results
-        info_loc.unlink()
 
     def _set_overview(self, overview_loc):
         try:
