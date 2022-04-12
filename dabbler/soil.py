@@ -341,6 +341,11 @@ class SoilGenerator:
                 layer_data, layer_transform = rasterio.mask.mask(
                     layer, [ROI_shape], crop=True
                 )
+                if np.max(layer_data) == -32768:
+                    # too small for 250m centroid so used all_touched
+                    layer_data, layer_transform = rasterio.mask.mask(
+                        layer, [ROI_shape], crop=True, all_touched=True
+                    )
                 layer_data = layer_data.astype(float)
                 # Mask the nodata values and compute mean
                 layer_data[layer_data == -32768] = np.nan
@@ -368,7 +373,10 @@ class SoilGenerator:
         depth_table["SBDM"] = depth_table["SBDM"] / 100
 
         # Calculate weight / weight to cm^3 / cm^3 conversion
-        conversion = depth_table["SBDM"] / 2.65
+        # conversion = depth_table["SBDM"] / 2.65
+        conversion = 1  # NOTE: assuming for now that DSSAT requires w/w
+                        # as dssat SOIL.CDE docs just says ('%') and cm3/cm3
+                        # values are off compared to DSSAT soil files
 
         # convert clay and silt
         depth_table["SLCL"] = (depth_table["SLCL"] / 1000) * conversion * 100
