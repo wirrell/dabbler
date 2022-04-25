@@ -5,6 +5,7 @@ import os
 import sys
 import signal
 import queue
+import logging
 import time
 import atexit
 import select
@@ -50,8 +51,8 @@ class DSSAT:
         # 'OVERVIEW.OUT', NOTE: skip overview for now as it requires bytes read
         "PlantGro.OUT",
         "PlantN.OUT",
-        "RunList.OUT",
-        # 'SoilNBalSum.OUT',
+        # "RunList.OUT", NOTE: RunList causes read blocking after a prior failed run
+        # 'SoilNBalSum.OUT',                 DSSAT may leave it open.
         # 'SoilNiBal.OUT',
         # 'SoilNi.OUT',
         # 'SoilNoBal.OUT',
@@ -90,6 +91,7 @@ class DSSAT:
         signal.signal(signal.SIGINT, self.clean_in_out_on_exit)
 
     def clean_in_out_on_exit(self, *args):
+        logging.info('clean_in_out_on_exit called')
         self.kill_dssat_subprocess()
         for io_file in self.in_out_location.glob("*"):
             try:
@@ -399,7 +401,9 @@ class Results:
 
         try:
             with open(fifo_loc, "r") as fifo:
-                select.select([fifo], [], [fifo])
+                r, w, e = select.select([fifo], [], [fifo], 3)  # timeout 3 seconds
+                if not (r or w or e):
+                    raise SimulationFailedError(f"Timeout on file {fifo_loc}.")
                 out_string = fifo.read()
         except FileNotFoundError:
             return None
@@ -416,6 +420,7 @@ class Results:
                 nrows=numrows,
             )
         except pd.errors.EmptyDataError:
+            logging.info(f"Result file {fifo_loc} empty.")
             raise SimulationFailedError(f"Result file {fifo_loc} empty.")
 
         if "DOY" in table.columns:

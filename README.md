@@ -7,10 +7,9 @@
 	from datetime import date
 
 	dssat_bin = '/path/to/DSSAT/build/bin'
-	dssat_weather = '/path/to/DSSAT/build/Weather'
 	dssat_soil = '/path/to/DSSAT/build/Soil'
 
-	dssat = DSSAT(dssat_bin, dssat_weather, dssat_soil)
+	dssat = DSSAT(dssat_bin, dssat_soil)
 
 	experiment = Experiment(
 	    crop='Maize',
@@ -26,5 +25,8 @@
 	)
 
 	results = dssat.run(experiment)
+
+	# See plant growth table
+	print(results.PlantGro)
 
 ```
