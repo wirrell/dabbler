@@ -16,7 +16,7 @@ This project was started to make running DSSAT for the nth time a little more co
 2. To use **dabbler**, you will need to compile a modified version on the latest version of DSSAT, found [here](https://github.com/wirrell/dssat-csm-os)
 
 ### Why do I need to use a modified version of DSSAT?
-dabbler uses FIFOs to trick DSSAT into writing directly to buffers, avoiding unnecessary overhead so that things can keep churning. To do this, we need to use modified FORTRAN `write` statements that use `STREAM=TRUE`. The forker DSSAT repository linked above contains a version with these modifications made in the DSSAT IO modules.
+dabbler uses FIFOs to trick DSSAT into writing directly to buffers, avoiding unnecessary overhead so that things can keep churning. To do this, we need to use modified FORTRAN `OPEN` statements to use `ACCESS='STREAM'`. The forker DSSAT repository linked above contains a version with these modifications made in the DSSAT IO modules.
 
 
 
